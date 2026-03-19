@@ -43,7 +43,6 @@ function LoginPage() {
       }
 
       if (data?.session) {
-        // Invalidate router cache and navigate
         await router.invalidate()
         router.navigate({ to: '/dashboard' })
       } else {
