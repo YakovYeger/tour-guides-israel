@@ -1,131 +1,289 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { Search, Grid3X3, List, Loader2 } from 'lucide-react'
-import { useGuides, type GuideFilters } from '@/hooks/use-guides'
-import { GuideCard } from '@/components/guides/GuideCard'
-import { SearchFilters } from '@/components/guides/SearchFilters'
-import { Input } from '@/components/ui/input'
+import { createFileRoute, Link, useSearch, useNavigate } from '@tanstack/react-router'
+import { useState, useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import {
+  Search,
+  MapPin,
+  Shield,
+  Zap,
+  SlidersHorizontal,
+  Grid,
+  List,
+  X,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Rating } from '@/components/ui/rating'
+import { Checkbox } from '@/components/ui/checkbox'
+import { PageLoading } from '@/components/ui/loading-spinner'
+import { cn } from '@/lib/utils'
+import { getSupabaseClient } from '@/lib/supabase'
+import { regions as allRegions } from '@/data/regions'
+import { themes as allThemes } from '@/data/themes'
+import { languages as allLanguages, getLanguageName } from '@/data'
+import type { Guide } from '@/types/database'
+
+type SearchParams = {
+  region?: string
+  theme?: string
+  q?: string
+}
 
 export const Route = createFileRoute('/guides/')({
   component: GuidesPage,
+  validateSearch: (search: Record<string, unknown>): SearchParams => ({
+    region: search.region as string | undefined,
+    theme: search.theme as string | undefined,
+    q: search.q as string | undefined,
+  }),
   head: () => ({
     meta: [
       { title: 'Find Tour Guides | Tour Guides Israel' },
-      { name: 'description', content: 'Browse licensed professional tour guides across Israel. Filter by region, language, and tour type.' },
+      { name: 'description', content: 'Browse licensed professional tour guides across Israel.' },
     ],
   }),
 })
 
+interface DirectoryFilters {
+  regions: string[]
+  themes: string[]
+  languages: string[]
+  licensed: boolean
+  instantBook: boolean
+}
+
 function GuidesPage() {
-  const { t } = useTranslation(['guides', 'common'])
-  const [searchQuery, setSearchQuery] = useState('')
-  const [filters, setFilters] = useState<{
-    regions: string[]
-    tourTypes: string[]
-    languages: string[]
-  }>({
-    regions: [],
-    tourTypes: [],
-    languages: [],
-  })
-  const [sortBy, setSortBy] = useState<GuideFilters['sortBy']>('recommended')
+  const searchParams = useSearch({ from: '/guides/' })
+  const navigate = useNavigate()
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [searchQuery, setSearchQuery] = useState(searchParams.q || '')
 
-  const { data: guides, isLoading, error } = useGuides({
-    regions: filters.regions,
-    tourTypes: filters.tourTypes,
-    languages: filters.languages,
-    search: searchQuery,
-    sortBy,
+  const [filters, setFilters] = useState<DirectoryFilters>({
+    regions: searchParams.region ? [searchParams.region] : [],
+    themes: searchParams.theme ? [searchParams.theme] : [],
+    languages: [],
+    licensed: false,
+    instantBook: false,
   })
 
-  const handleFilterChange = (key: string, values: string[]) => {
-    setFilters(prev => ({ ...prev, [key]: values }))
+  // Fetch guides from Supabase
+  const { data: guides = [], isLoading } = useQuery({
+    queryKey: ['guides', filters, searchQuery],
+    queryFn: async () => {
+      const supabase = getSupabaseClient()
+      let query = supabase
+        .from('guides')
+        .select('*')
+        .eq('status', 'approved')
+
+      const { data } = await query.order('search_boost_score', { ascending: false })
+      return (data || []) as Guide[]
+    },
+  })
+
+  // Filter guides client-side
+  const filteredGuides = useMemo(() => {
+    let results = [...guides]
+
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase()
+      results = results.filter(
+        (guide) =>
+          guide.full_name.toLowerCase().includes(q) ||
+          guide.bio?.toLowerCase().includes(q) ||
+          guide.regions_covered?.some((r) => r.toLowerCase().includes(q)) ||
+          guide.tour_types?.some((t) => t.toLowerCase().includes(q))
+      )
+    }
+
+    if (filters.regions.length) {
+      results = results.filter((guide) =>
+        guide.regions_covered?.some((r) => filters.regions.includes(r.toLowerCase().replace(' ', '_')))
+      )
+    }
+
+    if (filters.themes.length) {
+      results = results.filter((guide) =>
+        guide.tour_types?.some((t) => filters.themes.includes(t.toLowerCase()))
+      )
+    }
+
+    if (filters.languages.length) {
+      results = results.filter((guide) =>
+        guide.languages?.some((l) => filters.languages.includes(l))
+      )
+    }
+
+    if (filters.licensed) {
+      results = results.filter((guide) => guide.licensed_guide_number)
+    }
+
+    if (filters.instantBook) {
+      results = results.filter((guide) => guide.instant_book_enabled)
+    }
+
+    // Sort: Featured first, then by score
+    results.sort((a, b) => {
+      if (a.is_featured !== b.is_featured) return b.is_featured ? 1 : -1
+      return (b.search_boost_score || 0) - (a.search_boost_score || 0)
+    })
+
+    return results
+  }, [guides, searchQuery, filters])
+
+  const toggleArrayFilter = (key: 'regions' | 'themes' | 'languages', value: string) => {
+    setFilters((prev) => {
+      const current = prev[key] || []
+      const updated = current.includes(value)
+        ? current.filter((v) => v !== value)
+        : [...current, value]
+      return { ...prev, [key]: updated }
+    })
   }
 
-  const handleClearAll = () => {
-    setFilters({ regions: [], tourTypes: [], languages: [] })
+  const clearFilters = () => {
+    setFilters({ regions: [], themes: [], languages: [], licensed: false, instantBook: false })
     setSearchQuery('')
   }
 
-  return (
-    <div className="py-8 md:py-12">
-      <div className="page-wrap">
-        {/* Header */}
-        <div className="text-center mb-10">
-          <h1 className="display-title text-3xl md:text-4xl font-bold text-desert-ink mb-3">
-            {t('guides:search.title')}
-          </h1>
-          <p className="text-lg text-desert-ink-soft max-w-2xl mx-auto">
-            {t('guides:search.subtitle')}
-          </p>
-        </div>
+  const activeFilterCount = useMemo(() => {
+    let count = 0
+    if (filters.regions.length) count += filters.regions.length
+    if (filters.themes.length) count += filters.themes.length
+    if (filters.languages.length) count += filters.languages.length
+    if (filters.licensed) count++
+    if (filters.instantBook) count++
+    return count
+  }, [filters])
 
-        {/* Search Bar */}
-        <div className="max-w-2xl mx-auto mb-8">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-desert-ink-soft" />
-            <Input
-              type="text"
-              placeholder="Search by name, location, or specialty..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 h-12 text-base rounded-xl"
-            />
+  if (isLoading) {
+    return <PageLoading text="Loading guides..." />
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-primary text-white py-12">
+        <div className="container">
+          <h1 className="text-3xl lg:text-4xl font-bold mb-4">Find Your Perfect Guide</h1>
+          <p className="text-white/70 mb-6 max-w-2xl">
+            Browse our curated directory of licensed tour guides. Filter by region, specialty, and more.
+          </p>
+          <div className="max-w-2xl">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search by name, region, or specialty..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 rounded-xl bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-accent"
+              />
+            </div>
           </div>
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Sidebar Filters */}
-          <aside className="lg:col-span-1">
-            <SearchFilters
-              filters={filters}
-              onFilterChange={handleFilterChange}
-              onClearAll={handleClearAll}
-            />
+      <div className="container py-8">
+        <div className="flex gap-8">
+          {/* Desktop Filters Sidebar */}
+          <aside className="hidden lg:block w-72 flex-shrink-0">
+            <div className="sticky top-24 bg-white rounded-xl border border-gray-200 p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-semibold text-gray-900">Filters</h2>
+                {activeFilterCount > 0 && (
+                  <button onClick={clearFilters} className="text-sm text-primary hover:underline">
+                    Clear all
+                  </button>
+                )}
+              </div>
+
+              <FilterSection title="Regions">
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {allRegions.map((region) => (
+                    <label key={region.id} className="flex items-center gap-2 cursor-pointer">
+                      <Checkbox
+                        checked={filters.regions.includes(region.slug)}
+                        onCheckedChange={() => toggleArrayFilter('regions', region.slug)}
+                      />
+                      <span className="text-sm text-gray-700">{region.name}</span>
+                    </label>
+                  ))}
+                </div>
+              </FilterSection>
+
+              <FilterSection title="Themes">
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {allThemes.map((theme) => (
+                    <label key={theme.id} className="flex items-center gap-2 cursor-pointer">
+                      <Checkbox
+                        checked={filters.themes.includes(theme.slug)}
+                        onCheckedChange={() => toggleArrayFilter('themes', theme.slug)}
+                      />
+                      <span className="text-sm text-gray-700">{theme.icon} {theme.name}</span>
+                    </label>
+                  ))}
+                </div>
+              </FilterSection>
+
+              <FilterSection title="Features">
+                <div className="space-y-3">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox
+                      checked={filters.licensed}
+                      onCheckedChange={(checked) => setFilters((f) => ({ ...f, licensed: !!checked }))}
+                    />
+                    <span className="text-sm text-gray-700">Licensed Guides Only</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox
+                      checked={filters.instantBook}
+                      onCheckedChange={(checked) => setFilters((f) => ({ ...f, instantBook: !!checked }))}
+                    />
+                    <span className="text-sm text-gray-700">Instant Book</span>
+                  </label>
+                </div>
+              </FilterSection>
+            </div>
           </aside>
 
-          {/* Results */}
-          <div className="lg:col-span-3">
-            {/* Results Header */}
+          {/* Main Content */}
+          <div className="flex-1 min-w-0">
+            {/* Toolbar */}
             <div className="flex items-center justify-between mb-6">
-              <p className="text-desert-ink-soft">
-                {isLoading ? (
-                  <span className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Loading...
-                  </span>
-                ) : (
-                  t('guides:search.results', { count: guides?.length || 0 })
+              <div className="flex items-center gap-4">
+                <p className="text-gray-500">
+                  <span className="font-medium text-gray-900">{filteredGuides.length}</span> guides found
+                </p>
+                {activeFilterCount > 0 && (
+                  <Badge variant="primary">{activeFilterCount} filter{activeFilterCount !== 1 ? 's' : ''}</Badge>
                 )}
-              </p>
-
+              </div>
               <div className="flex items-center gap-3">
-                {/* Sort Dropdown */}
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as GuideFilters['sortBy'])}
-                  className="text-sm border border-line rounded-lg px-3 py-2 bg-surface focus:outline-none focus:ring-2 focus:ring-sunset/50"
+                <button
+                  onClick={() => setIsFilterOpen(true)}
+                  className="lg:hidden flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-gray-600 hover:border-primary hover:text-primary"
                 >
-                  <option value="recommended">{t('guides:search.sortOptions.recommended')}</option>
-                  <option value="rating">{t('guides:search.sortOptions.rating')}</option>
-                  <option value="experience">{t('guides:search.sortOptions.experience')}</option>
-                  <option value="reviews">{t('guides:search.sortOptions.reviews')}</option>
-                </select>
-
-                {/* View Toggle */}
-                <div className="flex border border-line rounded-lg overflow-hidden">
+                  <SlidersHorizontal className="h-4 w-4" />
+                  Filters
+                  {activeFilterCount > 0 && (
+                    <span className="min-w-[20px] h-5 px-1 flex items-center justify-center text-xs font-medium rounded-full bg-primary text-white">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </button>
+                <div className="hidden sm:flex items-center border border-gray-200 rounded-lg overflow-hidden">
                   <button
                     onClick={() => setViewMode('grid')}
-                    className={`p-2 ${viewMode === 'grid' ? 'bg-sunset text-white' : 'bg-surface text-desert-ink-soft hover:bg-link-bg-hover'}`}
+                    className={cn('p-2 transition-colors', viewMode === 'grid' ? 'bg-primary text-white' : 'text-gray-400 hover:text-primary')}
                   >
-                    <Grid3X3 className="h-4 w-4" />
+                    <Grid className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => setViewMode('list')}
-                    className={`p-2 ${viewMode === 'list' ? 'bg-sunset text-white' : 'bg-surface text-desert-ink-soft hover:bg-link-bg-hover'}`}
+                    className={cn('p-2 transition-colors', viewMode === 'list' ? 'bg-primary text-white' : 'text-gray-400 hover:text-primary')}
                   >
                     <List className="h-4 w-4" />
                   </button>
@@ -133,32 +291,290 @@ function GuidesPage() {
               </div>
             </div>
 
-            {/* Guide Grid */}
-            {error ? (
-              <div className="text-center py-12">
-                <p className="text-red-500">Error loading guides. Please try again.</p>
+            {/* Active Filter Pills */}
+            {activeFilterCount > 0 && (
+              <div className="flex flex-wrap gap-2 mb-6">
+                {filters.regions.map((slug) => {
+                  const region = allRegions.find((r) => r.slug === slug)
+                  return (
+                    <button
+                      key={slug}
+                      onClick={() => toggleArrayFilter('regions', slug)}
+                      className="flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm hover:bg-primary/20"
+                    >
+                      {region?.name} <X className="h-3 w-3" />
+                    </button>
+                  )
+                })}
+                {filters.themes.map((slug) => {
+                  const theme = allThemes.find((t) => t.slug === slug)
+                  return (
+                    <button
+                      key={slug}
+                      onClick={() => toggleArrayFilter('themes', slug)}
+                      className="flex items-center gap-1 px-3 py-1 bg-secondary/10 text-secondary rounded-full text-sm hover:bg-secondary/20"
+                    >
+                      {theme?.name} <X className="h-3 w-3" />
+                    </button>
+                  )
+                })}
+                {filters.licensed && (
+                  <button
+                    onClick={() => setFilters((f) => ({ ...f, licensed: false }))}
+                    className="flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm hover:bg-green-200"
+                  >
+                    Licensed <X className="h-3 w-3" />
+                  </button>
+                )}
               </div>
-            ) : guides && guides.length > 0 ? (
-              <div className={viewMode === 'grid' 
-                ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6'
-                : 'space-y-4'
-              }>
-                {guides.map((guide) => (
-                  <GuideCard key={guide.id} guide={guide} featured={guide.is_featured} />
+            )}
+
+            {/* Results */}
+            {filteredGuides.length === 0 ? (
+              <div className="text-center py-16">
+                <div className="text-6xl mb-4">🔍</div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">No guides found</h3>
+                <p className="text-gray-500 mb-6">Try adjusting your filters or search query</p>
+                <Button variant="outline" onClick={clearFilters}>Clear all filters</Button>
+              </div>
+            ) : viewMode === 'grid' ? (
+              <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                {filteredGuides.map((guide) => (
+                  <GuideCard key={guide.id} guide={guide} />
                 ))}
               </div>
-            ) : !isLoading ? (
-              <div className="text-center py-12">
-                <p className="text-desert-ink-soft mb-4">{t('guides:search.noResults')}</p>
-                <Button variant="outline" onClick={handleClearAll}>
-                  {t('guides:search.filters.clearAll')}
-                </Button>
+            ) : (
+              <div className="space-y-4">
+                {filteredGuides.map((guide) => (
+                  <GuideListItem key={guide.id} guide={guide} />
+                ))}
               </div>
-            ) : null}
+            )}
           </div>
+        </div>
+      </div>
+
+      {/* Mobile Filter Drawer */}
+      {isFilterOpen && (
+        <MobileFilterDrawer
+          filters={filters}
+          setFilters={setFilters}
+          toggleArrayFilter={toggleArrayFilter}
+          clearFilters={clearFilters}
+          onClose={() => setIsFilterOpen(false)}
+          resultCount={filteredGuides.length}
+        />
+      )}
+    </div>
+  )
+}
+
+function FilterSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="py-4 border-b border-gray-100 last:border-0">
+      <h3 className="font-medium text-gray-900 mb-3">{title}</h3>
+      {children}
+    </div>
+  )
+}
+
+function GuideCard({ guide }: { guide: Guide }) {
+  return (
+    <Link to={`/guides/${guide.id}`}>
+      <Card className="h-full overflow-hidden hover:shadow-lg transition-all duration-300 group">
+        <div className="relative aspect-[4/3] overflow-hidden">
+          <img
+            src={guide.photo_url || 'https://via.placeholder.com/400x300?text=Guide'}
+            alt={guide.full_name}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+          {guide.is_featured && (
+            <Badge variant="gold" className="absolute top-3 left-3">Featured</Badge>
+          )}
+          {guide.licensed_guide_number && (
+            <div className="absolute top-3 right-3 p-1.5 bg-green-500 rounded-full" title="Licensed Guide">
+              <Shield className="h-4 w-4 text-white" />
+            </div>
+          )}
+          {guide.instant_book_enabled && (
+            <div className="absolute top-3 right-12 p-1.5 bg-accent rounded-full" title="Instant Book">
+              <Zap className="h-4 w-4 text-white" />
+            </div>
+          )}
+        </div>
+        <CardContent className="p-5">
+          <h3 className="font-semibold text-lg text-gray-900 group-hover:text-primary transition-colors">
+            {guide.full_name}
+          </h3>
+          {guide.business_name && (
+            <p className="text-sm text-gray-500 mt-0.5">{guide.business_name}</p>
+          )}
+          <div className="flex items-center gap-1.5 mt-2 text-sm text-gray-500">
+            <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
+            <span className="truncate">{guide.regions_covered?.slice(0, 2).join(', ') || 'Israel'}</span>
+          </div>
+          <div className="flex items-center gap-2 mt-3">
+            <Rating value={4.8} size="sm" showValue />
+            <span className="text-sm text-gray-400">(24)</span>
+          </div>
+          <div className="flex flex-wrap gap-1.5 mt-4">
+            {guide.tour_types?.slice(0, 3).map((type) => (
+              <Badge key={type} variant="outline" size="sm">{type}</Badge>
+            ))}
+          </div>
+          <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100">
+            <span className="text-xs text-gray-400">Languages:</span>
+            <span className="text-xs text-gray-600">
+              {guide.languages?.slice(0, 3).map(getLanguageName).join(', ')}
+            </span>
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
+  )
+}
+
+function GuideListItem({ guide }: { guide: Guide }) {
+  return (
+    <Link to={`/guides/${guide.id}`}>
+      <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 group">
+        <div className="flex flex-col sm:flex-row">
+          <div className="relative w-full sm:w-48 h-48 sm:h-auto flex-shrink-0">
+            <img
+              src={guide.photo_url || 'https://via.placeholder.com/400x300?text=Guide'}
+              alt={guide.full_name}
+              className="w-full h-full object-cover"
+            />
+            {guide.is_featured && (
+              <Badge variant="gold" className="absolute top-3 left-3">Featured</Badge>
+            )}
+          </div>
+          <CardContent className="p-5 flex-1">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="font-semibold text-lg text-gray-900 group-hover:text-primary transition-colors">
+                  {guide.full_name}
+                </h3>
+                <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                  <span className="flex items-center gap-1">
+                    <MapPin className="h-3.5 w-3.5" />
+                    {guide.regions_covered?.slice(0, 2).join(', ') || 'Israel'}
+                  </span>
+                  {guide.years_experience && (
+                    <span>{guide.years_experience} years exp.</span>
+                  )}
+                </div>
+              </div>
+              <div className="text-right">
+                <Rating value={4.8} size="sm" showValue />
+                <span className="text-sm text-gray-400 block">(24 reviews)</span>
+              </div>
+            </div>
+            <p className="text-gray-600 mt-3 line-clamp-2">{guide.bio}</p>
+            <div className="flex flex-wrap gap-1.5 mt-4">
+              {guide.tour_types?.slice(0, 4).map((type) => (
+                <Badge key={type} variant="outline" size="sm">{type}</Badge>
+              ))}
+            </div>
+            <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+              <div className="flex items-center gap-3">
+                {guide.licensed_guide_number && (
+                  <div className="flex items-center gap-1 text-green-600 text-sm">
+                    <Shield className="h-4 w-4" />
+                    Licensed
+                  </div>
+                )}
+                {guide.instant_book_enabled && (
+                  <div className="flex items-center gap-1 text-accent text-sm">
+                    <Zap className="h-4 w-4" />
+                    Instant Book
+                  </div>
+                )}
+              </div>
+              <Button size="sm">View Profile</Button>
+            </div>
+          </CardContent>
+        </div>
+      </Card>
+    </Link>
+  )
+}
+
+interface MobileFilterDrawerProps {
+  filters: DirectoryFilters
+  setFilters: React.Dispatch<React.SetStateAction<DirectoryFilters>>
+  toggleArrayFilter: (key: 'regions' | 'themes' | 'languages', value: string) => void
+  clearFilters: () => void
+  onClose: () => void
+  resultCount: number
+}
+
+function MobileFilterDrawer({ filters, setFilters, toggleArrayFilter, clearFilters, onClose, resultCount }: MobileFilterDrawerProps) {
+  return (
+    <div className="fixed inset-0 z-50 lg:hidden">
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div className="absolute inset-y-0 right-0 w-full max-w-sm bg-white flex flex-col">
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <h2 className="font-semibold text-lg text-gray-900">Filters</h2>
+          <button onClick={onClose} className="p-2 text-gray-500 hover:text-gray-700">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-4">
+          <FilterSection title="Regions">
+            <div className="space-y-2">
+              {allRegions.map((region) => (
+                <label key={region.id} className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={filters.regions.includes(region.slug)}
+                    onCheckedChange={() => toggleArrayFilter('regions', region.slug)}
+                  />
+                  <span className="text-sm text-gray-700">{region.name}</span>
+                </label>
+              ))}
+            </div>
+          </FilterSection>
+          <FilterSection title="Themes">
+            <div className="space-y-2">
+              {allThemes.map((theme) => (
+                <label key={theme.id} className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={filters.themes.includes(theme.slug)}
+                    onCheckedChange={() => toggleArrayFilter('themes', theme.slug)}
+                  />
+                  <span className="text-sm text-gray-700">{theme.icon} {theme.name}</span>
+                </label>
+              ))}
+            </div>
+          </FilterSection>
+          <FilterSection title="Features">
+            <div className="space-y-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox
+                  checked={filters.licensed}
+                  onCheckedChange={(checked) => setFilters((f) => ({ ...f, licensed: !!checked }))}
+                />
+                <span className="text-sm text-gray-700">Licensed Guides Only</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox
+                  checked={filters.instantBook}
+                  onCheckedChange={(checked) => setFilters((f) => ({ ...f, instantBook: !!checked }))}
+                />
+                <span className="text-sm text-gray-700">Instant Book</span>
+              </label>
+            </div>
+          </FilterSection>
+        </div>
+        <div className="p-4 border-t border-gray-200 flex gap-3">
+          <Button variant="outline" onClick={clearFilters} className="flex-1">
+            Clear all
+          </Button>
+          <Button onClick={onClose} className="flex-1">
+            Show {resultCount} guides
+          </Button>
         </div>
       </div>
     </div>
   )
 }
-
