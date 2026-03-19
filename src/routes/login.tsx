@@ -1,25 +1,25 @@
-import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Mail, Lock, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { getSupabaseClient } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
+
+// Create client at module level - same pattern that works in auth-test
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+)
 
 export const Route = createFileRoute('/login')({
   component: LoginPage,
-  ssr: false, // Disable SSR for login - needs browser APIs
-  head: () => ({
-    meta: [
-      { title: 'Login | Tour Guides Israel' },
-    ],
-  }),
+  ssr: false,
 })
 
 function LoginPage() {
   const { t } = useTranslation('auth')
-  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -30,7 +30,6 @@ function LoginPage() {
     setIsLoading(true)
 
     try {
-      const supabase = getSupabaseClient()
       const { data, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -43,8 +42,8 @@ function LoginPage() {
       }
 
       if (data?.session) {
-        await router.invalidate()
-        router.navigate({ to: '/dashboard' })
+        // Use window.location for a full page reload to ensure auth state is fresh
+        window.location.href = '/dashboard'
       } else {
         setError('Login failed')
         setIsLoading(false)
@@ -56,7 +55,6 @@ function LoginPage() {
   }
 
   const handleGoogleSignIn = async () => {
-    const supabase = getSupabaseClient()
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {

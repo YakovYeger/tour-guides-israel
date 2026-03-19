@@ -1,33 +1,18 @@
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
 import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar'
-import { useAuth } from '@/hooks/use-auth'
-import { Loader2 } from 'lucide-react'
 
 export const Route = createFileRoute('/dashboard')({
+  // Wait for auth and redirect if not authenticated
+  beforeLoad: async ({ context }) => {
+    const auth = await context.auth
+    if (!auth.user) {
+      throw redirect({ to: '/login' })
+    }
+  },
   component: DashboardLayout,
 })
 
 function DashboardLayout() {
-  const { user, isLoading } = useAuth()
-
-  if (isLoading) {
-    return (
-      <div className="min-h-[80vh] flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    )
-  }
-
-  // If not authenticated, show login prompt (don't redirect to avoid loops)
-  if (!user) {
-    return (
-      <div className="min-h-[80vh] flex flex-col items-center justify-center">
-        <p className="text-gray-500 mb-4">Please log in to access your dashboard</p>
-        <a href="/login" className="text-primary hover:underline">Go to Login</a>
-      </div>
-    )
-  }
-
   return (
     <div className="flex">
       <DashboardSidebar />

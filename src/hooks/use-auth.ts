@@ -1,17 +1,14 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
-import { getSupabaseClient } from '@/lib/supabase'
-import type { User, Session } from '@supabase/supabase-js'
+import { useState, useEffect, useCallback } from 'react'
+import { supabase, authState } from '@/lib/supabase/client'
 import type { Guide } from '@/types/database'
 
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(null)
-  const [session, setSession] = useState<Session | null>(null)
+  const [user, setUser] = useState(authState.user)
+  const [isLoading, setIsLoading] = useState(!authState.isInitialized)
   const [guide, setGuide] = useState<Guide | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const initialized = useRef(false)
 
   const fetchGuideProfile = useCallback(async (email: string) => {
-    const supabase = getSupabaseClient()
+    if (!supabase) return
     const { data } = await supabase
       .from('guides')
       .select('*')
@@ -21,56 +18,37 @@ export function useAuth() {
   }, [])
 
   useEffect(() => {
-    // Prevent double initialization in React StrictMode
-    if (initialized.current) return
-    initialized.current = true
+    if (!supabase) return
 
-    const supabase = getSupabaseClient()
+    // Sync with current state
+    setUser(authState.user)
+    setIsLoading(!authState.isInitialized)
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null)
-      if (session?.user?.email) {
-        fetchGuideProfile(session.user.email)
-      }
       setIsLoading(false)
     })
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session)
-        setUser(session?.user ?? null)
+    return () => subscription.unsubscribe()
+  }, [])
 
-        if (session?.user?.email) {
-          await fetchGuideProfile(session.user.email)
-        } else {
-          setGuide(null)
-        }
-
-        setIsLoading(false)
-
-        if (event === 'SIGNED_OUT') {
-          window.location.href = '/'
-        }
-      }
-    )
-
-    return () => {
-      subscription.unsubscribe()
+  useEffect(() => {
+    if (user?.email) {
+      fetchGuideProfile(user.email)
+    } else {
+      setGuide(null)
     }
-  }, [fetchGuideProfile])
+  }, [user?.email, fetchGuideProfile])
 
   const signOut = async () => {
-    const supabase = getSupabaseClient()
+    if (!supabase) return
     await supabase.auth.signOut()
     setGuide(null)
   }
 
   return {
     user,
-    session,
     guide,
     isLoading,
     isAuthenticated: !!user,
