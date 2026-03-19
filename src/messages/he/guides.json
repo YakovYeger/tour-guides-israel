@@ -1,0 +1,59 @@
+{
+  "search": {
+    "title": "מצא מדריכי טיולים",
+    "subtitle": "גלה מדריכים מקצועיים מורשים בכל רחבי ישראל",
+    "filters": {
+      "region": "אזור",
+      "tourType": "סוג סיור",
+      "language": "שפה",
+      "priceRange": "טווח מחירים",
+      "availability": "זמינות",
+      "clearAll": "נקה הכל"
+    },
+    "results": "נמצאו {count} מדריכים",
+    "noResults": "לא נמצאו מדריכים התואמים לקריטריונים שלך",
+    "sortBy": "מיין לפי",
+    "sortOptions": {
+      "recommended": "מומלץ",
+      "rating": "דירוג גבוה",
+      "experience": "ניסיון רב",
+      "reviews": "הכי הרבה ביקורות"
+    }
+  },
+  "card": {
+    "yearsExp": "{years} שנות ניסיון",
+    "tours": "{count} סיורים",
+    "reviews": "{count} ביקורות",
+    "viewProfile": "צפה בפרופיל",
+    "featured": "מומלץ"
+  },
+  "profile": {
+    "about": "אודות",
+    "services": "שירותים וסוגי סיורים",
+    "regions": "אזורי פעילות",
+    "languages": "שפות",
+    "experience": "ניסיון",
+    "certifications": "הסמכות",
+    "reviews": "ביקורות",
+    "gallery": "גלריית תמונות",
+    "availability": "זמינות",
+    "contact": "יצירת קשר",
+    "website": "אתר אינטרנט",
+    "yearsExperience": "{years} שנות ניסיון",
+    "maxGroupSize": "גודל קבוצה מקסימלי: {size} אנשים",
+    "hasVehicle": "יש רכב לסיורים",
+    "tourDurations": "משכי סיורים זמינים"
+  },
+  "registration": {
+    "title": "הפוך למדריך טיולים",
+    "subtitle": "הצטרף למאגר מדריכי הטיולים המוביל בישראל",
+    "steps": {
+      "basicInfo": "מידע בסיסי",
+      "professional": "פרטים מקצועיים",
+      "services": "שירותים ואזורים",
+      "photos": "תמונות ומדיה",
+      "review": "סקירה ושליחה"
+    }
+  }
+}
+

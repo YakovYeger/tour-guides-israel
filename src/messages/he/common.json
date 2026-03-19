@@ -1,0 +1,73 @@
+{
+  "nav": {
+    "home": "בית",
+    "guides": "מצא מדריך",
+    "about": "אודות",
+    "contact": "צור קשר",
+    "pricing": "מחירים",
+    "login": "התחברות",
+    "signup": "הרשמה",
+    "dashboard": "לוח בקרה",
+    "logout": "התנתקות",
+    "forGuides": "למדריכים"
+  },
+  "footer": {
+    "tagline": "גלה את ישראל עם מדריכי טיולים מורשים ומקצועיים",
+    "quickLinks": "קישורים מהירים",
+    "forGuides": "למדריכים",
+    "legal": "משפטי",
+    "privacy": "מדיניות פרטיות",
+    "terms": "תנאי שימוש",
+    "contact": "צור קשר",
+    "copyright": "© {year} מדריכי טיולים ישראל. כל הזכויות שמורות.",
+    "becomeGuide": "הפוך למדריך",
+    "guideLogin": "כניסת מדריכים"
+  },
+  "buttons": {
+    "search": "חיפוש",
+    "learnMore": "למידע נוסף",
+    "getStarted": "התחל עכשיו",
+    "viewProfile": "צפה בפרופיל",
+    "contactGuide": "צור קשר עם המדריך",
+    "bookTour": "הזמן סיור",
+    "submit": "שלח",
+    "cancel": "ביטול",
+    "save": "שמור",
+    "loading": "טוען..."
+  },
+  "regions": {
+    "tel_aviv": "תל אביב",
+    "jerusalem": "ירושלים",
+    "haifa": "חיפה",
+    "galilee": "גליל",
+    "negev": "נגב",
+    "dead_sea": "ים המלח",
+    "eilat": "אילת",
+    "golan": "רמת הגולן"
+  },
+  "tourTypes": {
+    "historical": "היסטורי",
+    "culinary": "קולינרי",
+    "adventure": "אתגרי",
+    "religious": "דתי",
+    "nature": "טבע",
+    "family": "משפחתי",
+    "photography": "צילום",
+    "wine": "סיורי יין",
+    "architecture": "אדריכלות"
+  },
+  "languages": {
+    "en": "אנגלית",
+    "he": "עברית",
+    "ar": "ערבית",
+    "ru": "רוסית",
+    "fr": "צרפתית",
+    "de": "גרמנית",
+    "es": "ספרדית",
+    "it": "איטלקית",
+    "pt": "פורטוגזית",
+    "zh": "סינית",
+    "ja": "יפנית"
+  }
+}
+

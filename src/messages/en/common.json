@@ -1,0 +1,73 @@
+{
+  "nav": {
+    "home": "Home",
+    "guides": "Find Guides",
+    "about": "About",
+    "contact": "Contact",
+    "pricing": "Pricing",
+    "login": "Login",
+    "signup": "Sign Up",
+    "dashboard": "Dashboard",
+    "logout": "Logout",
+    "forGuides": "For Guides"
+  },
+  "footer": {
+    "tagline": "Discover Israel with licensed professional tour guides",
+    "quickLinks": "Quick Links",
+    "forGuides": "For Guides",
+    "legal": "Legal",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "contact": "Contact Us",
+    "copyright": "© {year} Tour Guides Israel. All rights reserved.",
+    "becomeGuide": "Become a Guide",
+    "guideLogin": "Guide Login"
+  },
+  "buttons": {
+    "search": "Search",
+    "learnMore": "Learn More",
+    "getStarted": "Get Started",
+    "viewProfile": "View Profile",
+    "contactGuide": "Contact Guide",
+    "bookTour": "Book Tour",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "loading": "Loading..."
+  },
+  "regions": {
+    "tel_aviv": "Tel Aviv",
+    "jerusalem": "Jerusalem",
+    "haifa": "Haifa",
+    "galilee": "Galilee",
+    "negev": "Negev",
+    "dead_sea": "Dead Sea",
+    "eilat": "Eilat",
+    "golan": "Golan Heights"
+  },
+  "tourTypes": {
+    "historical": "Historical",
+    "culinary": "Culinary",
+    "adventure": "Adventure",
+    "religious": "Religious",
+    "nature": "Nature",
+    "family": "Family",
+    "photography": "Photography",
+    "wine": "Wine Tours",
+    "architecture": "Architecture"
+  },
+  "languages": {
+    "en": "English",
+    "he": "Hebrew",
+    "ar": "Arabic",
+    "ru": "Russian",
+    "fr": "French",
+    "de": "German",
+    "es": "Spanish",
+    "it": "Italian",
+    "pt": "Portuguese",
+    "zh": "Chinese",
+    "ja": "Japanese"
+  }
+}
+

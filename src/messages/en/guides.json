@@ -1,0 +1,59 @@
+{
+  "search": {
+    "title": "Find Tour Guides",
+    "subtitle": "Discover licensed professional guides across Israel",
+    "filters": {
+      "region": "Region",
+      "tourType": "Tour Type",
+      "language": "Language",
+      "priceRange": "Price Range",
+      "availability": "Availability",
+      "clearAll": "Clear All"
+    },
+    "results": "{count} guides found",
+    "noResults": "No guides found matching your criteria",
+    "sortBy": "Sort by",
+    "sortOptions": {
+      "recommended": "Recommended",
+      "rating": "Highest Rated",
+      "experience": "Most Experienced",
+      "reviews": "Most Reviews"
+    }
+  },
+  "card": {
+    "yearsExp": "{years} years experience",
+    "tours": "{count} tours",
+    "reviews": "{count} reviews",
+    "viewProfile": "View Profile",
+    "featured": "Featured"
+  },
+  "profile": {
+    "about": "About",
+    "services": "Services & Tour Types",
+    "regions": "Regions Covered",
+    "languages": "Languages",
+    "experience": "Experience",
+    "certifications": "Certifications",
+    "reviews": "Reviews",
+    "gallery": "Photo Gallery",
+    "availability": "Availability",
+    "contact": "Contact",
+    "website": "Website",
+    "yearsExperience": "{years} years of experience",
+    "maxGroupSize": "Max group size: {size} people",
+    "hasVehicle": "Has vehicle for tours",
+    "tourDurations": "Tour durations available"
+  },
+  "registration": {
+    "title": "Become a Tour Guide",
+    "subtitle": "Join Israel's premier tour guide directory",
+    "steps": {
+      "basicInfo": "Basic Information",
+      "professional": "Professional Details",
+      "services": "Services & Regions",
+      "photos": "Photos & Media",
+      "review": "Review & Submit"
+    }
+  }
+}
+

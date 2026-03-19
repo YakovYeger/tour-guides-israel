@@ -1,0 +1,88 @@
+{
+  "hero": {
+    "title": "Discover Israel Through Local Eyes",
+    "subtitle": "Connect with licensed professional tour guides who bring Israel's rich history, culture, and landscapes to life",
+    "searchPlaceholder": "Where would you like to explore?",
+    "cta": "Find Your Guide",
+    "stats": {
+      "guides": "Professional Guides",
+      "tours": "Tours Completed",
+      "rating": "Average Rating"
+    }
+  },
+  "features": {
+    "title": "Why Choose Tour Guides Israel?",
+    "subtitle": "We connect you with the best licensed tour guides across the country",
+    "licensed": {
+      "title": "Licensed Professionals",
+      "description": "All our guides are licensed by the Israeli Ministry of Tourism, ensuring expert knowledge and safety"
+    },
+    "local": {
+      "title": "Local Expertise",
+      "description": "Our guides are locals who know the hidden gems, best restaurants, and authentic experiences"
+    },
+    "customized": {
+      "title": "Customized Tours",
+      "description": "From historical sites to culinary adventures, find the perfect tour tailored to your interests"
+    },
+    "languages": {
+      "title": "Multilingual Guides",
+      "description": "Tour in your preferred language with guides fluent in over 15 languages"
+    }
+  },
+  "howItWorks": {
+    "title": "How It Works",
+    "subtitle": "Finding your perfect tour guide is easy",
+    "step1": {
+      "title": "Search",
+      "description": "Browse our directory of licensed guides by location, language, or specialty"
+    },
+    "step2": {
+      "title": "Connect",
+      "description": "View profiles, read reviews, and contact guides directly"
+    },
+    "step3": {
+      "title": "Explore",
+      "description": "Book your tour and discover Israel with an expert by your side"
+    }
+  },
+  "featured": {
+    "title": "Featured Tour Guides",
+    "subtitle": "Meet some of our top-rated professionals",
+    "viewAll": "View All Guides"
+  },
+  "testimonials": {
+    "title": "What Travelers Say",
+    "subtitle": "Hear from visitors who explored Israel with our guides"
+  },
+  "cta": {
+    "title": "Are You a Tour Guide?",
+    "subtitle": "Join Israel's premier tour guide directory and connect with travelers from around the world",
+    "button": "Join as a Guide",
+    "benefits": {
+      "visibility": "Increase your visibility",
+      "bookings": "Get more bookings",
+      "profile": "Showcase your expertise"
+    }
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "q1": {
+      "question": "Are all guides licensed?",
+      "answer": "Yes, all tour guides on our platform are licensed by the Israeli Ministry of Tourism. We verify each guide's credentials before they can create a profile."
+    },
+    "q2": {
+      "question": "How do I book a tour?",
+      "answer": "Simply browse our guide directory, find a guide that matches your interests, and contact them directly through their profile. You can discuss tour details, dates, and pricing directly."
+    },
+    "q3": {
+      "question": "What types of tours are available?",
+      "answer": "Our guides offer a wide variety of tours including historical, religious, culinary, nature, adventure, photography tours, and more. Many guides can also create custom itineraries."
+    },
+    "q4": {
+      "question": "Can I request a tour in my language?",
+      "answer": "Absolutely! Use our language filter to find guides who speak your preferred language. Our guides speak over 15 languages including English, Hebrew, Arabic, Russian, French, German, and more."
+    }
+  }
+}
+
