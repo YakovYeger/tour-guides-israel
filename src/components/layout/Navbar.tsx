@@ -79,83 +79,18 @@ export function Navbar() {
               <span>{i18n.language === 'en' ? 'עב' : 'EN'}</span>
             </button>
 
-            {/* Auth Section */}
-            {!isLoading && (
-              <>
-                {isAuthenticated ? (
-                  <div className="relative" ref={userMenuRef}>
-                    <button
-                      onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                      className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-                    >
-                      <Avatar size="sm">
-                        {guide?.photo_url ? (
-                          <AvatarImage src={guide.photo_url} alt={guide.full_name} />
-                        ) : null}
-                        <AvatarFallback>
-                          {guide ? getInitials(guide.full_name) : user?.email?.[0].toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="hidden sm:block text-sm font-medium text-gray-700 max-w-[120px] truncate">
-                        {guide?.full_name || user?.email?.split('@')[0]}
-                      </span>
-                      <ChevronDown className="h-4 w-4 text-gray-400" />
-                    </button>
-
-                    {/* Dropdown Menu */}
-                    {isUserMenuOpen && (
-                      <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
-                        <div className="px-4 py-2 border-b border-gray-100">
-                          <p className="text-sm font-medium text-gray-900 truncate">
-                            {guide?.full_name || 'User'}
-                          </p>
-                          <p className="text-xs text-gray-500 truncate">{user?.email}</p>
-                        </div>
-
-                        <Link
-                          to="/dashboard"
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
-                          onClick={() => setIsUserMenuOpen(false)}
-                        >
-                          <LayoutDashboard className="h-4 w-4" />
-                          Dashboard
-                        </Link>
-
-                        {guide && (
-                          <Link
-                            to={`/guides/${guide.id}`}
-                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
-                            onClick={() => setIsUserMenuOpen(false)}
-                          >
-                            <User className="h-4 w-4" />
-                            View My Profile
-                          </Link>
-                        )}
-
-                        <div className="border-t border-gray-100 mt-1 pt-1">
-                          <button
-                            onClick={handleSignOut}
-                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 w-full text-left"
-                          >
-                            <LogOut className="h-4 w-4" />
-                            Sign Out
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="hidden sm:flex items-center gap-2">
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link to="/login">{t('nav.login')}</Link>
-                    </Button>
-                    <Button size="sm" asChild>
-                      <Link to="/for-guides/register">Join as Guide</Link>
-                    </Button>
-                  </div>
-                )}
-              </>
-            )}
+            {/* Auth Section - Only render on client to avoid hydration mismatch */}
+            <AuthSection
+              isLoading={isLoading}
+              isAuthenticated={isAuthenticated}
+              user={user}
+              guide={guide}
+              isUserMenuOpen={isUserMenuOpen}
+              setIsUserMenuOpen={setIsUserMenuOpen}
+              userMenuRef={userMenuRef}
+              handleSignOut={handleSignOut}
+              t={t}
+            />
 
             {/* Mobile menu button */}
             <button
@@ -219,3 +154,126 @@ export function Navbar() {
   )
 }
 
+// Separate component to handle auth UI - avoids hydration issues
+function AuthSection({
+  isLoading,
+  isAuthenticated,
+  user,
+  guide,
+  isUserMenuOpen,
+  setIsUserMenuOpen,
+  userMenuRef,
+  handleSignOut,
+  t,
+}: {
+  isLoading: boolean
+  isAuthenticated: boolean
+  user: any
+  guide: any
+  isUserMenuOpen: boolean
+  setIsUserMenuOpen: (v: boolean) => void
+  userMenuRef: React.RefObject<HTMLDivElement | null>
+  handleSignOut: () => void
+  t: (key: string) => string
+}) {
+  const [mounted, setMounted] = useState(false)
+
+  // Only render auth UI after mount to avoid hydration mismatch
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Show nothing during SSR and initial hydration
+  if (!mounted) {
+    return (
+      <div className="hidden sm:flex items-center gap-2">
+        <Button variant="ghost" size="sm" asChild>
+          <Link to="/login">{t('nav.login')}</Link>
+        </Button>
+        <Button size="sm" asChild>
+          <Link to="/for-guides/register">Join as Guide</Link>
+        </Button>
+      </div>
+    )
+  }
+
+  if (isLoading) {
+    return null
+  }
+
+  if (isAuthenticated) {
+    return (
+      <div className="relative" ref={userMenuRef}>
+        <button
+          onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+          className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+        >
+          <Avatar size="sm">
+            {guide?.photo_url ? (
+              <AvatarImage src={guide.photo_url} alt={guide.full_name} />
+            ) : null}
+            <AvatarFallback>
+              {guide ? getInitials(guide.full_name) : user?.email?.[0].toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <span className="hidden sm:block text-sm font-medium text-gray-700 max-w-[120px] truncate">
+            {guide?.full_name || user?.email?.split('@')[0]}
+          </span>
+          <ChevronDown className="h-4 w-4 text-gray-400" />
+        </button>
+
+        {isUserMenuOpen && (
+          <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
+            <div className="px-4 py-2 border-b border-gray-100">
+              <p className="text-sm font-medium text-gray-900 truncate">
+                {guide?.full_name || 'User'}
+              </p>
+              <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+            </div>
+
+            <Link
+              to="/dashboard"
+              className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+              onClick={() => setIsUserMenuOpen(false)}
+            >
+              <LayoutDashboard className="h-4 w-4" />
+              Dashboard
+            </Link>
+
+            {guide && (
+              <Link
+                to={`/guides/${guide.id}`}
+                className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                onClick={() => setIsUserMenuOpen(false)}
+              >
+                <User className="h-4 w-4" />
+                View My Profile
+              </Link>
+            )}
+
+            <div className="border-t border-gray-100 mt-1 pt-1">
+              <button
+                onClick={handleSignOut}
+                className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 w-full text-left"
+              >
+                <LogOut className="h-4 w-4" />
+                Sign Out
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div className="hidden sm:flex items-center gap-2">
+      <Button variant="ghost" size="sm" asChild>
+        <Link to="/login">{t('nav.login')}</Link>
+      </Button>
+      <Button size="sm" asChild>
+        <Link to="/for-guides/register">Join as Guide</Link>
+      </Button>
+    </div>
+  )
+}

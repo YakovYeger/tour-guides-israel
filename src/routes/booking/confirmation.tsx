@@ -47,7 +47,8 @@ function BookingConfirmationPage() {
 
   const bookingDate = date ? new Date(date) : new Date()
   const isInstant = type === 'instant'
-  const bookingId = Math.random().toString(36).substring(2, 10).toUpperCase()
+  // Use a stable ID based on search params to avoid hydration mismatch
+  const bookingId = (guideId?.substring(0, 4) || 'BOOK') + (date?.substring(5, 10).replace('-', '') || '0000')
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
