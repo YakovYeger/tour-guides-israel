@@ -1,5 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
-import { useNavigate } from '@tanstack/react-router'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { getSupabaseClient } from '@/lib/supabase'
 import type { User, Session } from '@supabase/supabase-js'
 import type { Guide } from '@/types/database'
@@ -9,7 +8,7 @@ export function useAuth() {
   const [session, setSession] = useState<Session | null>(null)
   const [guide, setGuide] = useState<Guide | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const navigate = useNavigate()
+  const initialized = useRef(false)
 
   const fetchGuideProfile = useCallback(async (email: string) => {
     const supabase = getSupabaseClient()
@@ -22,6 +21,10 @@ export function useAuth() {
   }, [])
 
   useEffect(() => {
+    // Prevent double initialization in React StrictMode
+    if (initialized.current) return
+    initialized.current = true
+
     const supabase = getSupabaseClient()
 
     // Get initial session
@@ -49,7 +52,7 @@ export function useAuth() {
         setIsLoading(false)
 
         if (event === 'SIGNED_OUT') {
-          navigate({ to: '/' })
+          window.location.href = '/'
         }
       }
     )
@@ -57,7 +60,7 @@ export function useAuth() {
     return () => {
       subscription.unsubscribe()
     }
-  }, [navigate, fetchGuideProfile])
+  }, [fetchGuideProfile])
 
   const signOut = async () => {
     const supabase = getSupabaseClient()
@@ -74,19 +77,5 @@ export function useAuth() {
     isGuide: !!guide,
     signOut,
   }
-}
-
-// Hook to require authentication
-export function useRequireAuth(redirectTo: string = '/login') {
-  const { user, isLoading } = useAuth()
-  const navigate = useNavigate()
-
-  useEffect(() => {
-    if (!isLoading && !user) {
-      navigate({ to: redirectTo })
-    }
-  }, [user, isLoading, navigate, redirectTo])
-
-  return { user, isLoading }
 }
 
