@@ -26,6 +26,7 @@ import { Route as ForGuidesRegisterRouteImport } from './routes/for-guides/regis
 import { Route as DashboardProfileRouteImport } from './routes/dashboard/profile'
 import { Route as DashboardMessagesRouteImport } from './routes/dashboard/messages'
 import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard/analytics'
+import { Route as BookingConfirmationRouteImport } from './routes/booking/confirmation'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 
 const SignupRoute = SignupRouteImport.update({
@@ -113,6 +114,11 @@ const DashboardAnalyticsRoute = DashboardAnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
+const BookingConfirmationRoute = BookingConfirmationRouteImport.update({
+  id: '/booking/confirmation',
+  path: '/booking/confirmation',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/auth/callback',
   path: '/auth/callback',
@@ -129,6 +135,7 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/booking/confirmation': typeof BookingConfirmationRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/messages': typeof DashboardMessagesRoute
   '/dashboard/profile': typeof DashboardProfileRoute
@@ -148,6 +155,7 @@ export interface FileRoutesByTo {
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/booking/confirmation': typeof BookingConfirmationRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/messages': typeof DashboardMessagesRoute
   '/dashboard/profile': typeof DashboardProfileRoute
@@ -169,6 +177,7 @@ export interface FileRoutesById {
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/booking/confirmation': typeof BookingConfirmationRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/messages': typeof DashboardMessagesRoute
   '/dashboard/profile': typeof DashboardProfileRoute
@@ -191,6 +200,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/signup'
     | '/auth/callback'
+    | '/booking/confirmation'
     | '/dashboard/analytics'
     | '/dashboard/messages'
     | '/dashboard/profile'
@@ -210,6 +220,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/signup'
     | '/auth/callback'
+    | '/booking/confirmation'
     | '/dashboard/analytics'
     | '/dashboard/messages'
     | '/dashboard/profile'
@@ -230,6 +241,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/signup'
     | '/auth/callback'
+    | '/booking/confirmation'
     | '/dashboard/analytics'
     | '/dashboard/messages'
     | '/dashboard/profile'
@@ -251,6 +263,7 @@ export interface RootRouteChildren {
   PricingRoute: typeof PricingRoute
   SignupRoute: typeof SignupRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
+  BookingConfirmationRoute: typeof BookingConfirmationRoute
   ForGuidesRegisterRoute: typeof ForGuidesRegisterRoute
   ForGuidesSuccessRoute: typeof ForGuidesSuccessRoute
   GuidesSlugRoute: typeof GuidesSlugRoute
@@ -379,6 +392,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAnalyticsRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
+    '/booking/confirmation': {
+      id: '/booking/confirmation'
+      path: '/booking/confirmation'
+      fullPath: '/booking/confirmation'
+      preLoaderRoute: typeof BookingConfirmationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth/callback': {
       id: '/auth/callback'
       path: '/auth/callback'
@@ -417,6 +437,7 @@ const rootRouteChildren: RootRouteChildren = {
   PricingRoute: PricingRoute,
   SignupRoute: SignupRoute,
   AuthCallbackRoute: AuthCallbackRoute,
+  BookingConfirmationRoute: BookingConfirmationRoute,
   ForGuidesRegisterRoute: ForGuidesRegisterRoute,
   ForGuidesSuccessRoute: ForGuidesSuccessRoute,
   GuidesSlugRoute: GuidesSlugRoute,

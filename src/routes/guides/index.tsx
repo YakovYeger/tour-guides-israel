@@ -121,7 +121,7 @@ function GuidesPage() {
     }
 
     if (filters.instantBook) {
-      results = results.filter((guide) => guide.instant_book_enabled)
+      results = results.filter((guide) => (guide as any).instant_book_enabled)
     }
 
     // Sort: Featured first, then by score
@@ -396,7 +396,7 @@ function GuideCard({ guide }: { guide: Guide }) {
               <Shield className="h-4 w-4 text-white" />
             </div>
           )}
-          {guide.instant_book_enabled && (
+          {(guide as any).instant_book_enabled && (
             <div className="absolute top-3 right-12 p-1.5 bg-accent rounded-full" title="Instant Book">
               <Zap className="h-4 w-4 text-white" />
             </div>
@@ -484,7 +484,7 @@ function GuideListItem({ guide }: { guide: Guide }) {
                     Licensed
                   </div>
                 )}
-                {guide.instant_book_enabled && (
+                {(guide as any).instant_book_enabled && (
                   <div className="flex items-center gap-1 text-accent text-sm">
                     <Zap className="h-4 w-4" />
                     Instant Book

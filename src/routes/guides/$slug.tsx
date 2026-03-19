@@ -8,19 +8,13 @@ import {
   Clock,
   ChevronLeft,
   ChevronRight,
-  MessageSquare,
   Share2,
   Heart,
-  Check,
   Zap,
-  Award,
   Languages,
-  ChevronDown,
   Users,
   Car,
-  Calendar,
-  Phone,
-  Mail,
+  MessageSquare,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -29,6 +23,7 @@ import { Rating } from '@/components/ui/rating'
 import { Avatar, AvatarImage, AvatarFallback, getInitials } from '@/components/ui/avatar'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { PageLoading } from '@/components/ui/loading-spinner'
+import { BookingPanel } from '@/components/booking'
 import { cn } from '@/lib/utils'
 import { getSupabaseClient } from '@/lib/supabase'
 import { getLanguageName } from '@/data'
@@ -44,7 +39,6 @@ export const Route = createFileRoute('/guides/$slug')({
 function GuideProfilePage() {
   const { slug } = Route.useParams()
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const [showContact, setShowContact] = useState(false)
 
   const { data: guide, isLoading, error } = useQuery({
     queryKey: ['guide', slug],
@@ -137,14 +131,14 @@ function GuideProfilePage() {
               <div className="flex-1">
                 <div className="flex items-center gap-3 flex-wrap">
                   <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">{guide.full_name}</h1>
-                  {guide.is_pro && <Badge variant="secondary">Pro Guide</Badge>}
+                  {(guide as any).is_pro && <Badge variant="secondary">Pro Guide</Badge>}
                   {guide.licensed_guide_number && <Badge variant="success"><Shield className="h-3 w-3 mr-1" />Licensed</Badge>}
                 </div>
                 <div className="flex items-center gap-4 mt-2 text-gray-500 flex-wrap">
                   <div className="flex items-center gap-1"><MapPin className="h-4 w-4" />{guide.regions_covered?.join(', ') || 'Israel'}</div>
                   <Rating value={4.8} showValue showCount count={24} size="sm" />
                 </div>
-                {guide.instant_book_enabled && (
+                {(guide as any).instant_book_enabled && (
                   <div className="flex items-center gap-2 mt-2 text-success"><Zap className="h-4 w-4" /><span className="text-sm font-medium">Instant booking available</span></div>
                 )}
               </div>
@@ -187,7 +181,7 @@ function GuideProfilePage() {
           {/* Booking Sidebar */}
           <div className="lg:w-96 flex-shrink-0">
             <div className="lg:sticky lg:top-24">
-              <BookingSidebar guide={guide} showContact={showContact} setShowContact={setShowContact} />
+              <BookingPanel guide={guide} />
             </div>
           </div>
         </div>
@@ -307,76 +301,4 @@ function ReviewsTab() {
   )
 }
 
-function BookingSidebar({ guide, showContact, setShowContact }: { guide: Guide; showContact: boolean; setShowContact: (v: boolean) => void }) {
-  const [selectedDate, setSelectedDate] = useState('')
-  const [groupSize, setGroupSize] = useState(2)
 
-  return (
-    <Card>
-      <CardContent className="p-6">
-        <div className="text-center mb-6">
-          <div className="text-sm text-gray-500">Starting from</div>
-          <div className="text-3xl font-bold text-gray-900 mt-1">
-            ${guide.pricing?.half_day || 350}
-            <span className="text-base font-normal text-gray-500"> / half day</span>
-          </div>
-        </div>
-
-        <div className="space-y-4 mb-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Tour Date</label>
-            <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Group Size</label>
-            <div className="relative">
-              <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <select value={groupSize} onChange={(e) => setGroupSize(Number(e.target.value))} className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary appearance-none">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-                  <option key={n} value={n}>{n} {n === 1 ? 'person' : 'people'}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <Button fullWidth size="lg" className="mb-3">
-          {guide.instant_book_enabled ? 'Book Instantly' : 'Request to Book'}
-        </Button>
-
-        <Button variant="outline" fullWidth onClick={() => setShowContact(true)}>
-          <MessageSquare className="h-4 w-4 mr-2" /> Contact Guide
-        </Button>
-
-        {showContact && (
-          <div className="mt-4 p-4 bg-gray-50 rounded-lg space-y-3">
-            {guide.email && (
-              <a href={`mailto:${guide.email}`} className="flex items-center gap-2 text-primary hover:underline">
-                <Mail className="h-4 w-4" /> {guide.email}
-              </a>
-            )}
-            {guide.phone && (
-              <a href={`tel:${guide.phone}`} className="flex items-center gap-2 text-primary hover:underline">
-                <Phone className="h-4 w-4" /> {guide.phone}
-              </a>
-            )}
-          </div>
-        )}
-
-        <div className="mt-6 pt-6 border-t border-gray-200">
-          <div className="flex items-center gap-3 text-sm text-gray-500">
-            <Check className="h-4 w-4 text-green-500" />
-            Free cancellation up to 24 hours
-          </div>
-          <div className="flex items-center gap-3 text-sm text-gray-500 mt-2">
-            <Shield className="h-4 w-4 text-green-500" />
-            Licensed & verified guide
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
