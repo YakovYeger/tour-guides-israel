@@ -9,6 +9,7 @@ import { getSupabaseClient } from '@/lib/supabase'
 
 export const Route = createFileRoute('/signup')({
   component: SignupPage,
+  ssr: false, // Disable SSR for signup - needs browser APIs
   head: () => ({
     meta: [
       { title: 'Sign Up | Tour Guides Israel' },

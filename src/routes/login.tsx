@@ -1,5 +1,5 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
-import { useState, useEffect } from 'react'
+import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Mail, Lock, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
@@ -9,6 +9,7 @@ import { getSupabaseClient } from '@/lib/supabase'
 
 export const Route = createFileRoute('/login')({
   component: LoginPage,
+  ssr: false, // Disable SSR for login - needs browser APIs
   head: () => ({
     meta: [
       { title: 'Login | Tour Guides Israel' },
@@ -18,43 +19,39 @@ export const Route = createFileRoute('/login')({
 
 function LoginPage() {
   const { t } = useTranslation('auth')
+  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [isMounted, setIsMounted] = useState(false)
 
-  // Only run on client
-  useEffect(() => {
-    setIsMounted(true)
-  }, [])
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-
-    if (!isMounted) return
-
+  const handleSubmit = async () => {
     setError('')
     setIsLoading(true)
 
-    const supabase = getSupabaseClient()
-    const { data, error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+    try {
+      const supabase = getSupabaseClient()
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
 
-    if (authError) {
-      setError(authError.message || 'Invalid credentials')
-      setIsLoading(false)
-      return
-    }
+      if (authError) {
+        setError(authError.message || 'Invalid credentials')
+        setIsLoading(false)
+        return
+      }
 
-    if (data?.session) {
-      // Redirect on success
-      window.location.replace('/dashboard')
-    } else {
-      setError('Login failed')
+      if (data?.session) {
+        // Invalidate router cache and navigate
+        await router.invalidate()
+        router.navigate({ to: '/dashboard' })
+      } else {
+        setError('Login failed')
+        setIsLoading(false)
+      }
+    } catch (err) {
+      setError('An unexpected error occurred')
       setIsLoading(false)
     }
   }
