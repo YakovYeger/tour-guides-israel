@@ -4,8 +4,7 @@ import { Map, Instagram, Facebook, Linkedin, Mail } from 'lucide-react'
 
 export function Footer() {
   const { t } = useTranslation('common')
-  // Use a static year to avoid hydration mismatch - update annually
-  const year = 2025
+  const year = new Date().getFullYear()
 
   return (
     <footer className="bg-gray-900 text-white mt-auto">
