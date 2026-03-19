@@ -1,6 +1,5 @@
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
-import LanguageDetector from 'i18next-browser-languagedetector'
 
 // Import translations
 import enCommon from '@/messages/en/common.json'
@@ -32,20 +31,16 @@ export const resources = {
 } as const
 
 i18n
-  .use(LanguageDetector)
   .use(initReactI18next)
   .init({
     resources,
+    lng: defaultLocale, // Always start with default locale for SSR consistency
     fallbackLng: defaultLocale,
     supportedLngs: locales,
     defaultNS: 'common',
     ns: ['common', 'home', 'auth', 'guides'],
     interpolation: {
       escapeValue: false,
-    },
-    detection: {
-      order: ['path', 'localStorage', 'navigator'],
-      lookupFromPathIndex: 0,
     },
   })
 

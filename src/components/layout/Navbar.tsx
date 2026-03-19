@@ -15,14 +15,22 @@ export function Navbar() {
   const [isMounted, setIsMounted] = useState(false)
   const userMenuRef = useRef<HTMLDivElement>(null)
 
-  // Track when component has mounted (client-side only)
+  // Track when component has mounted and restore saved language
   useEffect(() => {
     setIsMounted(true)
-  }, [])
+    // Restore saved language preference on client
+    const savedLang = localStorage.getItem('i18nextLng')
+    if (savedLang && savedLang !== i18n.language) {
+      i18n.changeLanguage(savedLang)
+      document.documentElement.dir = savedLang === 'he' ? 'rtl' : 'ltr'
+      document.documentElement.lang = savedLang
+    }
+  }, [i18n])
 
   const toggleLanguage = () => {
     const newLang = i18n.language === 'en' ? 'he' : 'en'
     i18n.changeLanguage(newLang)
+    localStorage.setItem('i18nextLng', newLang)
     document.documentElement.dir = newLang === 'he' ? 'rtl' : 'ltr'
     document.documentElement.lang = newLang
   }
