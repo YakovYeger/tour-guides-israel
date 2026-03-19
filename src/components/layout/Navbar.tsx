@@ -12,7 +12,13 @@ export function Navbar() {
   const { user, guide, isAuthenticated, isLoading, signOut } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
   const userMenuRef = useRef<HTMLDivElement>(null)
+
+  // Track when component has mounted (client-side only)
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   const toggleLanguage = () => {
     const newLang = i18n.language === 'en' ? 'he' : 'en'
@@ -79,8 +85,18 @@ export function Navbar() {
               <span>{i18n.language === 'en' ? 'עב' : 'EN'}</span>
             </button>
 
-            {/* Auth Section */}
-            {isLoading ? null : isAuthenticated ? (
+            {/* Auth Section - only show dynamic content after mount to avoid hydration mismatch */}
+            {!isMounted || isLoading ? (
+              // Static placeholder during SSR and loading
+              <div className="hidden sm:flex items-center gap-2">
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/login">{t('nav.login')}</Link>
+                </Button>
+                <Button size="sm" asChild>
+                  <Link to="/for-guides/register">Join as Guide</Link>
+                </Button>
+              </div>
+            ) : isAuthenticated ? (
               <div className="relative" ref={userMenuRef}>
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}

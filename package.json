@@ -10,9 +10,9 @@
     "#/*": "./src/*"
   },
   "scripts": {
-    "dev": "vite --port 3000",
+    "dev": "vite dev --port 3000",
     "build": "vite build",
-    "preview": "vite preview --port 3000",
+    "preview": "vite preview",
     "test": "vitest run"
   },
   "dependencies": {
