@@ -5,12 +5,13 @@ import type { RegistrationData } from '../types'
 
 interface ReviewStepProps {
   data: RegistrationData
+  updateData: (updates: Partial<RegistrationData>) => void
   onBack: () => void
   onSubmit: () => void
   isSubmitting: boolean
 }
 
-export function ReviewStep({ data, onBack, onSubmit, isSubmitting }: ReviewStepProps) {
+export function ReviewStep({ data, updateData, onBack, onSubmit, isSubmitting }: ReviewStepProps) {
   const { t } = useTranslation(['guides', 'common'])
 
   const isValid = data.consentDisplay && data.consentContact
@@ -55,29 +56,24 @@ export function ReviewStep({ data, onBack, onSubmit, isSubmitting }: ReviewStepP
       <div className="p-4 rounded-xl bg-earth-50 border border-earth-200 space-y-4">
         <h3 className="font-semibold text-desert-ink">Terms & Consent</h3>
         
-        <label className="flex items-start gap-3">
+        <label className="flex items-start gap-3 cursor-pointer">
           <input
             type="checkbox"
             checked={data.consentDisplay}
-            onChange={(e) => {
-              // This is a bit hacky since we don't have updateData in ReviewStep
-              // In production, pass updateData to ReviewStep
-            }}
-            className="mt-1 w-4 h-4 text-sunset rounded"
+            onChange={(e) => updateData({ consentDisplay: e.target.checked })}
+            className="mt-1 w-4 h-4 text-sunset rounded accent-sunset"
           />
           <span className="text-sm text-desert-ink-soft">
             I consent to having my profile displayed publicly on Tour Guides Israel. I understand that my contact information will be visible to potential clients.
           </span>
         </label>
 
-        <label className="flex items-start gap-3">
+        <label className="flex items-start gap-3 cursor-pointer">
           <input
             type="checkbox"
             checked={data.consentContact}
-            onChange={(e) => {
-              // Same as above
-            }}
-            className="mt-1 w-4 h-4 text-sunset rounded"
+            onChange={(e) => updateData({ consentContact: e.target.checked })}
+            className="mt-1 w-4 h-4 text-sunset rounded accent-sunset"
           />
           <span className="text-sm text-desert-ink-soft">
             I consent to being contacted by Tour Guides Israel regarding my profile and by potential clients through the platform.

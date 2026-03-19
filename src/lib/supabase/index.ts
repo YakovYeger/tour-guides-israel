@@ -1,3 +1,4 @@
 export { createClient, getSupabaseClient } from './client'
-export { createSupabaseServerClient, createSupabaseServiceClient } from './server'
+// Server exports should only be imported in server-side code
+// export { createSupabaseServerClient, createSupabaseServiceClient } from './server'
 

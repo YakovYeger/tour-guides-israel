@@ -1,12 +1,23 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
 import { I18nextProvider } from 'react-i18next'
 import i18n from '@/lib/i18n/config'
 
 import appCss from '../styles.css?url'
+
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      refetchOnWindowFocus: false,
+    },
+  },
+})
 
 const THEME_INIT_SCRIPT = `(function(){try{var stored=window.localStorage.getItem('theme');var mode=(stored==='light'||stored==='dark'||stored==='auto')?stored:'auto';var prefersDark=window.matchMedia('(prefers-color-scheme: dark)').matches;var resolved=mode==='auto'?(prefersDark?'dark':'light'):mode;var root=document.documentElement;root.classList.remove('light','dark');root.classList.add(resolved);if(mode==='auto'){root.removeAttribute('data-theme')}else{root.setAttribute('data-theme',mode)}root.style.colorScheme=resolved;}catch(e){}})();`
 
@@ -50,13 +61,15 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body className="min-h-screen flex flex-col font-sans antialiased [overflow-wrap:anywhere] selection:bg-[rgba(249,115,22,0.24)]">
-        <I18nextProvider i18n={i18n}>
-          <Navbar />
-          <main className="flex-1">
-            {children}
-          </main>
-          <Footer />
-        </I18nextProvider>
+        <QueryClientProvider client={queryClient}>
+          <I18nextProvider i18n={i18n}>
+            <Navbar />
+            <main className="flex-1">
+              {children}
+            </main>
+            <Footer />
+          </I18nextProvider>
+        </QueryClientProvider>
         <TanStackDevtools
           config={{
             position: 'bottom-right',

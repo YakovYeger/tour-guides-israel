@@ -10,8 +10,10 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as DashboardRouteRouteImport } from './routes/dashboard/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -19,6 +21,7 @@ import { Route as GuidesIndexRouteImport } from './routes/guides/index'
 import { Route as ForGuidesIndexRouteImport } from './routes/for-guides/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as GuidesSlugRouteImport } from './routes/guides/$slug'
+import { Route as ForGuidesSuccessRouteImport } from './routes/for-guides/success'
 import { Route as ForGuidesRegisterRouteImport } from './routes/for-guides/register'
 import { Route as DashboardProfileRouteImport } from './routes/dashboard/profile'
 import { Route as DashboardMessagesRouteImport } from './routes/dashboard/messages'
@@ -30,6 +33,11 @@ const SignupRoute = SignupRouteImport.update({
   path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -38,6 +46,11 @@ const LoginRoute = LoginRouteImport.update({
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -75,6 +88,11 @@ const GuidesSlugRoute = GuidesSlugRouteImport.update({
   path: '/guides/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ForGuidesSuccessRoute = ForGuidesSuccessRouteImport.update({
+  id: '/for-guides/success',
+  path: '/for-guides/success',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ForGuidesRegisterRoute = ForGuidesRegisterRouteImport.update({
   id: '/for-guides/register',
   path: '/for-guides/register',
@@ -105,14 +123,17 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteRouteWithChildren
   '/about': typeof AboutRoute
+  '/contact': typeof ContactRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/messages': typeof DashboardMessagesRoute
   '/dashboard/profile': typeof DashboardProfileRoute
   '/for-guides/register': typeof ForGuidesRegisterRoute
+  '/for-guides/success': typeof ForGuidesSuccessRoute
   '/guides/$slug': typeof GuidesSlugRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/for-guides/': typeof ForGuidesIndexRoute
@@ -121,14 +142,17 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/contact': typeof ContactRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/messages': typeof DashboardMessagesRoute
   '/dashboard/profile': typeof DashboardProfileRoute
   '/for-guides/register': typeof ForGuidesRegisterRoute
+  '/for-guides/success': typeof ForGuidesSuccessRoute
   '/guides/$slug': typeof GuidesSlugRoute
   '/dashboard': typeof DashboardIndexRoute
   '/for-guides': typeof ForGuidesIndexRoute
@@ -139,14 +163,17 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteRouteWithChildren
   '/about': typeof AboutRoute
+  '/contact': typeof ContactRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/messages': typeof DashboardMessagesRoute
   '/dashboard/profile': typeof DashboardProfileRoute
   '/for-guides/register': typeof ForGuidesRegisterRoute
+  '/for-guides/success': typeof ForGuidesSuccessRoute
   '/guides/$slug': typeof GuidesSlugRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/for-guides/': typeof ForGuidesIndexRoute
@@ -158,14 +185,17 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/about'
+    | '/contact'
     | '/forgot-password'
     | '/login'
+    | '/pricing'
     | '/signup'
     | '/auth/callback'
     | '/dashboard/analytics'
     | '/dashboard/messages'
     | '/dashboard/profile'
     | '/for-guides/register'
+    | '/for-guides/success'
     | '/guides/$slug'
     | '/dashboard/'
     | '/for-guides/'
@@ -174,14 +204,17 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/contact'
     | '/forgot-password'
     | '/login'
+    | '/pricing'
     | '/signup'
     | '/auth/callback'
     | '/dashboard/analytics'
     | '/dashboard/messages'
     | '/dashboard/profile'
     | '/for-guides/register'
+    | '/for-guides/success'
     | '/guides/$slug'
     | '/dashboard'
     | '/for-guides'
@@ -191,14 +224,17 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/about'
+    | '/contact'
     | '/forgot-password'
     | '/login'
+    | '/pricing'
     | '/signup'
     | '/auth/callback'
     | '/dashboard/analytics'
     | '/dashboard/messages'
     | '/dashboard/profile'
     | '/for-guides/register'
+    | '/for-guides/success'
     | '/guides/$slug'
     | '/dashboard/'
     | '/for-guides/'
@@ -209,11 +245,14 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRouteRoute: typeof DashboardRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
+  ContactRoute: typeof ContactRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
+  PricingRoute: typeof PricingRoute
   SignupRoute: typeof SignupRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   ForGuidesRegisterRoute: typeof ForGuidesRegisterRoute
+  ForGuidesSuccessRoute: typeof ForGuidesSuccessRoute
   GuidesSlugRoute: typeof GuidesSlugRoute
   ForGuidesIndexRoute: typeof ForGuidesIndexRoute
   GuidesIndexRoute: typeof GuidesIndexRoute
@@ -228,6 +267,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -240,6 +286,13 @@ declare module '@tanstack/react-router' {
       path: '/forgot-password'
       fullPath: '/forgot-password'
       preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -289,6 +342,13 @@ declare module '@tanstack/react-router' {
       path: '/guides/$slug'
       fullPath: '/guides/$slug'
       preLoaderRoute: typeof GuidesSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/for-guides/success': {
+      id: '/for-guides/success'
+      path: '/for-guides/success'
+      fullPath: '/for-guides/success'
+      preLoaderRoute: typeof ForGuidesSuccessRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/for-guides/register': {
@@ -351,11 +411,14 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRouteRoute: DashboardRouteRouteWithChildren,
   AboutRoute: AboutRoute,
+  ContactRoute: ContactRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
+  PricingRoute: PricingRoute,
   SignupRoute: SignupRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   ForGuidesRegisterRoute: ForGuidesRegisterRoute,
+  ForGuidesSuccessRoute: ForGuidesSuccessRoute,
   GuidesSlugRoute: GuidesSlugRoute,
   ForGuidesIndexRoute: ForGuidesIndexRoute,
   GuidesIndexRoute: GuidesIndexRoute,

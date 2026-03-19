@@ -1,7 +1,9 @@
 import { useState } from 'react'
+import { useNavigate } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { getSupabaseClient } from '@/lib/supabase'
 import { BasicInfoStep } from './steps/BasicInfoStep'
 import { ProfessionalStep } from './steps/ProfessionalStep'
 import { ServicesStep } from './steps/ServicesStep'
@@ -43,9 +45,11 @@ const initialData: RegistrationData = {
 
 export function RegistrationWizard() {
   const { t } = useTranslation(['guides', 'common'])
+  const navigate = useNavigate()
   const [currentStep, setCurrentStep] = useState(0)
   const [data, setData] = useState<RegistrationData>(initialData)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const updateData = (updates: Partial<RegistrationData>) => {
     setData(prev => ({ ...prev, ...updates }))
@@ -67,12 +71,54 @@ export function RegistrationWizard() {
 
   const handleSubmit = async () => {
     setIsSubmitting(true)
+    setError(null)
+
     try {
-      // TODO: Submit to Supabase
-      console.log('Submitting:', data)
+      const supabase = getSupabaseClient()
+
+      // Create the guide profile
+      const { error: insertError } = await supabase
+        .from('guides')
+        .insert({
+          full_name: data.fullName,
+          email: data.email,
+          phone: data.phone,
+          bio: data.bio,
+          years_experience: data.yearsExperience,
+          languages: data.languages,
+          tour_types: data.tourTypes,
+          regions_covered: data.regionsCovered,
+          max_group_size: data.maxGroupSize,
+          has_vehicle: data.hasVehicle,
+          vehicle_type: data.vehicleType || null,
+          tour_duration_options: data.tourDurationOptions,
+          licensed_guide_number: data.licensedGuideNumber || null,
+          unique_approach: data.uniqueApproach,
+          why_tour_guide: data.whyTourGuide,
+          photo_url: data.photoUrl || null,
+          additional_photos: data.additionalPhotos,
+          video_url: data.videoUrl || null,
+          website: data.website || null,
+          consent_display: data.consentDisplay,
+          consent_contact: data.consentContact,
+          status: 'pending',
+          location: { city: '', country: 'Israel' },
+          pricing: {},
+          availability: { weekdays: true, weekends: true },
+          specialties: [],
+          display_preferences: ['email', 'phone'],
+          preferred_contact: 'email',
+        })
+
+      if (insertError) {
+        throw insertError
+      }
+
       // Redirect to success page
-    } catch (error) {
-      console.error('Error submitting:', error)
+      navigate({ to: '/for-guides/success' })
+    } catch (err: any) {
+      console.error('Error submitting:', err)
+      setError(err.message || 'An error occurred. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
@@ -120,6 +166,13 @@ export function RegistrationWizard() {
         </div>
       </div>
 
+      {/* Error Display */}
+      {error && (
+        <div className="mb-4 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700">
+          {error}
+        </div>
+      )}
+
       {/* Step Content */}
       <div className="island-shell rounded-2xl p-6 md:p-8">
         {currentStep === 0 && (
@@ -135,7 +188,7 @@ export function RegistrationWizard() {
           <PhotosStep data={data} updateData={updateData} onNext={nextStep} onBack={prevStep} />
         )}
         {currentStep === 4 && (
-          <ReviewStep data={data} onBack={prevStep} onSubmit={handleSubmit} isSubmitting={isSubmitting} />
+          <ReviewStep data={data} updateData={updateData} onBack={prevStep} onSubmit={handleSubmit} isSubmitting={isSubmitting} />
         )}
       </div>
     </div>
