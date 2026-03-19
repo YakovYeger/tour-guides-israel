@@ -32,7 +32,7 @@ export function DashboardSidebar() {
   const location = useLocation()
 
   return (
-    <aside className="w-64 bg-surface-strong border-r border-line min-h-[calc(100vh-4rem)] p-4">
+    <aside className="w-64 bg-white border-r border-gray-200 min-h-[calc(100vh-4rem)] p-4">
       <nav className="space-y-1">
         {menuItems.map((item) => {
           const isActive = item.exact
@@ -46,8 +46,8 @@ export function DashboardSidebar() {
               className={cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
                 isActive
-                  ? 'bg-sunset text-white'
-                  : 'text-desert-ink-soft hover:bg-link-bg-hover hover:text-desert-ink'
+                  ? 'bg-primary text-white'
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
               )}
             >
               <item.icon className="h-5 w-5" />

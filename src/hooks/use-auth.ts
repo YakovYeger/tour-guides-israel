@@ -1,13 +1,25 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { getSupabaseClient } from '@/lib/supabase'
 import type { User, Session } from '@supabase/supabase-js'
+import type { Guide } from '@/types/database'
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
+  const [guide, setGuide] = useState<Guide | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const navigate = useNavigate()
+
+  const fetchGuideProfile = useCallback(async (email: string) => {
+    const supabase = getSupabaseClient()
+    const { data } = await supabase
+      .from('guides')
+      .select('*')
+      .eq('email', email)
+      .single()
+    setGuide(data as Guide | null)
+  }, [])
 
   useEffect(() => {
     const supabase = getSupabaseClient()
@@ -16,6 +28,9 @@ export function useAuth() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
       setUser(session?.user ?? null)
+      if (session?.user?.email) {
+        fetchGuideProfile(session.user.email)
+      }
       setIsLoading(false)
     })
 
@@ -24,6 +39,13 @@ export function useAuth() {
       async (event, session) => {
         setSession(session)
         setUser(session?.user ?? null)
+
+        if (session?.user?.email) {
+          await fetchGuideProfile(session.user.email)
+        } else {
+          setGuide(null)
+        }
+
         setIsLoading(false)
 
         if (event === 'SIGNED_OUT') {
@@ -35,18 +57,21 @@ export function useAuth() {
     return () => {
       subscription.unsubscribe()
     }
-  }, [navigate])
+  }, [navigate, fetchGuideProfile])
 
   const signOut = async () => {
     const supabase = getSupabaseClient()
     await supabase.auth.signOut()
+    setGuide(null)
   }
 
   return {
     user,
     session,
+    guide,
     isLoading,
     isAuthenticated: !!user,
+    isGuide: !!guide,
     signOut,
   }
 }
