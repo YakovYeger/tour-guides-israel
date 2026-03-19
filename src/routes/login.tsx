@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Mail, Lock, Loader2 } from 'lucide-react'
@@ -18,7 +18,7 @@ export const Route = createFileRoute('/login')({
 
 function LoginPage() {
   const { t } = useTranslation('auth')
-  const navigate = useNavigate()
+  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -31,19 +31,20 @@ function LoginPage() {
 
     try {
       const supabase = getSupabaseClient()
-      const { error } = await supabase.auth.signInWithPassword({
+      const { error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
-      if (error) {
+      if (authError) {
         setError(t('errors.invalidCredentials'))
+        setIsLoading(false)
       } else {
-        navigate({ to: '/dashboard' })
+        // Use window.location for a full page reload to ensure auth state is fresh
+        window.location.href = '/dashboard'
       }
     } catch (err) {
       setError('An unexpected error occurred')
-    } finally {
       setIsLoading(false)
     }
   }

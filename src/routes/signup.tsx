@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { User, Mail, Lock, Loader2 } from 'lucide-react'
@@ -18,7 +18,6 @@ export const Route = createFileRoute('/signup')({
 
 function SignupPage() {
   const { t } = useTranslation('auth')
-  const navigate = useNavigate()
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -61,12 +60,11 @@ function SignupPage() {
           setError(error.message)
         }
       } else {
-        // Redirect to verify email page or dashboard
-        navigate({ to: '/login' })
+        // Redirect to login page after signup
+        window.location.href = '/login?registered=true'
       }
     } catch (err) {
       setError('An unexpected error occurred')
-    } finally {
       setIsLoading(false)
     }
   }
