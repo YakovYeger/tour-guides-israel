@@ -1,13 +1,13 @@
 import { createRouter as createTanStackRouter } from '@tanstack/react-router'
 import { routeTree } from './routeTree.gen'
-import { authReady } from '@/lib/supabase/client'
+import { getAuthState } from '@/lib/supabase/client'
 import type { RouterContext } from '@/routes/__root'
 
 export function getRouter() {
   const router = createTanStackRouter({
     routeTree,
     context: {
-      auth: authReady,
+      getAuth: getAuthState,
     } as RouterContext,
     scrollRestoration: true,
     defaultPreload: 'intent',

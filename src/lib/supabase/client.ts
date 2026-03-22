@@ -21,26 +21,40 @@ export const authState: AuthState = {
   isInitialized: false,
 }
 
-// Promise that resolves when auth is ready - for use in beforeLoad
-let authReadyResolve: ((state: AuthState) => void) | null = null
-export const authReady = new Promise<AuthState>((resolve) => {
-  authReadyResolve = resolve
-})
+// Function to get current auth state - always returns fresh promise
+export async function getAuthState(): Promise<AuthState> {
+  if (!supabase) {
+    return { user: null, isInitialized: true }
+  }
+
+  // If already initialized, return current state
+  if (authState.isInitialized) {
+    return authState
+  }
+
+  // Otherwise fetch session
+  const { data: { session } } = await supabase.auth.getSession()
+  authState.user = session?.user ?? null
+  authState.isInitialized = true
+  return authState
+}
 
 // Initialize auth listener (call once at app startup)
+let initialized = false
 export function initAuth() {
-  if (!supabase) return
+  if (!supabase || initialized) return
+  initialized = true
 
   // Get initial session
   supabase.auth.getSession().then(({ data: { session } }) => {
     authState.user = session?.user ?? null
     authState.isInitialized = true
-    authReadyResolve?.(authState)
   })
 
   // Listen for changes
   supabase.auth.onAuthStateChange((event, session) => {
     authState.user = session?.user ?? null
+    authState.isInitialized = true
 
     if (event === 'SIGNED_OUT') {
       window.location.href = '/'

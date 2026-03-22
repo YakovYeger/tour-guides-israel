@@ -6,7 +6,7 @@ import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
 import { I18nextProvider } from 'react-i18next'
 import i18n from '@/lib/i18n/config'
-import { initAuth, authReady, type AuthState } from '@/lib/supabase/client'
+import { initAuth, type AuthState } from '@/lib/supabase/client'
 
 import appCss from '../styles.css?url'
 
@@ -17,7 +17,7 @@ if (typeof window !== 'undefined') {
 
 // Router context type
 export interface RouterContext {
-  auth: Promise<AuthState>
+  getAuth: () => Promise<AuthState>
 }
 
 // Create a client
