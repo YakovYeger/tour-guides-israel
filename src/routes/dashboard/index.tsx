@@ -1,35 +1,36 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { Calendar, MessageSquare, Star, TrendingUp, Eye, DollarSign, Users, Clock, Zap, ArrowRight } from 'lucide-react'
+import { Calendar, MessageSquare, Star, TrendingUp, Eye, DollarSign, Users, Clock, Zap, ArrowRight, Loader2 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarImage, AvatarFallback, getInitials } from '@/components/ui/avatar'
 import { useAuth } from '@/hooks/use-auth'
+import { useBookings, useDashboardStats } from '@/hooks/use-dashboard-data'
 
 export const Route = createFileRoute('/dashboard/')({
   component: DashboardOverview,
 })
-
-const stats = [
-  { label: 'This Month', value: '$2,450', change: '+12%', icon: DollarSign, color: 'text-green-600', bgColor: 'bg-green-100' },
-  { label: 'Total Bookings', value: '24', change: '+3', icon: Calendar, color: 'text-primary', bgColor: 'bg-primary/10' },
-  { label: 'Profile Views', value: '1,234', change: '+18%', icon: Eye, color: 'text-secondary', bgColor: 'bg-secondary/10' },
-  { label: 'Rating', value: '4.95', change: '89 reviews', icon: Star, color: 'text-accent', bgColor: 'bg-accent/10' },
-]
 
 const recentMessages = [
   { id: '1', name: 'John Smith', photo: 'https://images.unsplash.com/photo-1599566150163-29194dcabd36?w=100', message: 'Looking forward to our tour tomorrow!', time: '2h ago', unread: true },
   { id: '2', name: 'Maria Garcia', photo: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100', message: "Thank you for confirming!", time: '5h ago', unread: false },
 ]
 
-const mockBookings = [
-  { id: '1', date: '2025-03-22', groupSize: 4, duration: 'full', status: 'confirmed', totalPrice: 600 },
-  { id: '2', date: '2025-03-25', groupSize: 2, duration: 'half', status: 'pending', totalPrice: 350 },
-  { id: '3', date: '2025-03-28', groupSize: 6, duration: 'full', status: 'confirmed', totalPrice: 800 },
-]
-
 function DashboardOverview() {
-  const { user, guide } = useAuth()
+  const { guide } = useAuth()
+  const { data: bookings, isLoading: bookingsLoading } = useBookings()
+  const { data: stats, isLoading: statsLoading } = useDashboardStats()
+
+  const upcomingBookings = bookings?.filter(b =>
+    b.status !== 'cancelled' && b.status !== 'completed' && new Date(b.tour_date) >= new Date()
+  ).slice(0, 3) || []
+
+  const statCards = [
+    { label: 'This Month', value: `$${stats?.thisMonthRevenue || 0}`, change: 'Revenue', icon: DollarSign, color: 'text-green-600', bgColor: 'bg-green-100' },
+    { label: 'Total Bookings', value: stats?.totalBookings || 0, change: `${stats?.pendingBookings || 0} pending`, icon: Calendar, color: 'text-primary', bgColor: 'bg-primary/10' },
+    { label: 'Profile Views', value: '1,234', change: '+18%', icon: Eye, color: 'text-secondary', bgColor: 'bg-secondary/10' },
+    { label: 'Rating', value: stats?.avgRating || '0.0', change: `${stats?.totalReviews || 0} reviews`, icon: Star, color: 'text-accent', bgColor: 'bg-accent/10' },
+  ]
 
   return (
     <div className="space-y-8">
@@ -49,7 +50,9 @@ function DashboardOverview() {
 
       {/* Stats Grid */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat) => (
+        {statsLoading ? (
+          <div className="col-span-4 flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
+        ) : statCards.map((stat) => (
           <Card key={stat.label}>
             <CardContent className="p-5">
               <div className="flex items-start justify-between">
@@ -70,27 +73,33 @@ function DashboardOverview() {
         {/* Upcoming Bookings */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <div><CardTitle>Upcoming Tours</CardTitle><p className="text-sm text-gray-500 mt-1">{mockBookings.length} scheduled</p></div>
+            <div><CardTitle>Upcoming Tours</CardTitle><p className="text-sm text-gray-500 mt-1">{upcomingBookings.length} scheduled</p></div>
             <Link to="/dashboard/bookings" className="text-primary text-sm font-medium hover:underline">View all</Link>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {mockBookings.map((booking) => (
-                <div key={booking.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center"><Calendar className="h-6 w-6 text-primary" /></div>
-                    <div>
-                      <p className="font-medium text-gray-900">{new Date(booking.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</p>
-                      <p className="text-sm text-gray-500">{booking.groupSize} people • {booking.duration === 'half' ? 'Half Day' : 'Full Day'}</p>
+            {bookingsLoading ? (
+              <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
+            ) : upcomingBookings.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">No upcoming tours scheduled</p>
+            ) : (
+              <div className="space-y-3">
+                {upcomingBookings.map((booking) => (
+                  <div key={booking.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center"><Calendar className="h-6 w-6 text-primary" /></div>
+                      <div>
+                        <p className="font-medium text-gray-900">{new Date(booking.tour_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</p>
+                        <p className="text-sm text-gray-500">{booking.traveler_name} • {booking.group_size} people</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium text-gray-900">${booking.total_price}</p>
+                      <Badge variant={booking.status === 'confirmed' ? 'success' : 'warning'} size="sm">{booking.status}</Badge>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-medium text-gray-900">${booking.totalPrice}</p>
-                    <Badge variant={booking.status === 'confirmed' ? 'success' : 'warning'} size="sm">{booking.status}</Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
