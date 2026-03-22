@@ -78,12 +78,21 @@ function SettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2"><Lock className="h-5 w-5" /> Password</CardTitle>
-          <CardDescription>Update your password</CardDescription>
+          <CardDescription>Update your password to keep your account secure</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Input label="Current Password" type="password" />
-          <Input label="New Password" type="password" />
-          <Input label="Confirm New Password" type="password" />
+          <div>
+            <Input label="Current Password" type="password" placeholder="Enter your current password" />
+            <p className="text-xs text-gray-500 mt-1">Required to verify your identity</p>
+          </div>
+          <div>
+            <Input label="New Password" type="password" placeholder="Enter a new password" />
+            <p className="text-xs text-gray-500 mt-1">At least 8 characters with a mix of letters and numbers</p>
+          </div>
+          <div>
+            <Input label="Confirm New Password" type="password" placeholder="Re-enter your new password" />
+            <p className="text-xs text-gray-500 mt-1">Must match the new password above</p>
+          </div>
           <Button variant="outline">Update Password</Button>
         </CardContent>
       </Card>

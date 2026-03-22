@@ -33,6 +33,9 @@ function AvailabilityPage() {
     if (guide?.show_public_availability !== undefined) {
       setShowPublic(guide.show_public_availability)
     }
+    if (guide?.blocked_dates) {
+      setBlockedDates(guide.blocked_dates as string[])
+    }
   }, [guide])
 
   const toggleDay = (day: string) => {
@@ -53,6 +56,7 @@ function AvailabilityPage() {
       .from('guides')
       .update({
         availability,
+        blocked_dates: blockedDates,
         show_public_availability: showPublic,
         updated_at: new Date().toISOString()
       })

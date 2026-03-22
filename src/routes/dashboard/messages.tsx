@@ -27,10 +27,10 @@ function DashboardMessages() {
     }
   }, [conversations, selectedConversation])
 
-  // Scroll to bottom on new messages
-  useEffect(() => {
+  // Scroll to bottom only when sending a new message
+  const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+  }
 
   const filteredConversations = (conversations || []).filter(c =>
     !searchQuery || c.client_name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -38,7 +38,9 @@ function DashboardMessages() {
 
   const handleSend = () => {
     if (!newMessage.trim() || !selectedConversation) return
-    sendMessage.mutate({ conversationId: selectedConversation.id, content: newMessage })
+    sendMessage.mutate({ conversationId: selectedConversation.id, content: newMessage }, {
+      onSuccess: () => scrollToBottom()
+    })
     setNewMessage('')
   }
 
