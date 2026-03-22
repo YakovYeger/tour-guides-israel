@@ -6,6 +6,8 @@ import { Loader2 } from 'lucide-react'
 
 export const Route = createFileRoute('/dashboard')({
   component: DashboardLayout,
+  // Disable SSR for dashboard - auth state is only available on client
+  ssr: false,
 })
 
 function DashboardLayout() {
@@ -13,13 +15,11 @@ function DashboardLayout() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    // Only redirect on client-side after auth is initialized
     if (!isLoading && !user) {
       navigate({ to: '/login' })
     }
   }, [isLoading, user, navigate])
 
-  // Show loading while checking auth
   if (isLoading) {
     return (
       <div className="min-h-[80vh] flex items-center justify-center">
@@ -28,13 +28,8 @@ function DashboardLayout() {
     )
   }
 
-  // Don't render dashboard if not authenticated
   if (!user) {
-    return (
-      <div className="min-h-[80vh] flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    )
+    return null // Will redirect via useEffect
   }
 
   return (
