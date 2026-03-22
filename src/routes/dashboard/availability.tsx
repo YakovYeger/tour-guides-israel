@@ -40,17 +40,34 @@ function AvailabilityPage() {
   }
 
   const handleSave = async () => {
-    if (!supabase || !guide?.id) return
+    if (!supabase || !guide?.id) {
+      console.error('Cannot save: no supabase client or guide id')
+      return
+    }
     setSaveStatus('saving')
     setIsLoading(true)
 
-    const { error } = await supabase
+    console.log('Saving availability:', { availability, showPublic, guideId: guide.id })
+
+    const { data, error } = await supabase
       .from('guides')
-      .update({ availability, show_public_availability: showPublic, updated_at: new Date().toISOString() })
+      .update({
+        availability,
+        show_public_availability: showPublic,
+        updated_at: new Date().toISOString()
+      })
       .eq('id', guide.id)
+      .select()
+
+    console.log('Save result:', { data, error })
 
     setIsLoading(false)
-    setSaveStatus(error ? 'error' : 'saved')
+    if (error) {
+      console.error('Save error:', error)
+      setSaveStatus('error')
+    } else {
+      setSaveStatus('saved')
+    }
     setTimeout(() => setSaveStatus('idle'), 3000)
   }
 

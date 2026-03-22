@@ -117,6 +117,86 @@ export function useRespondToReview() {
   })
 }
 
+// Conversations
+export interface Conversation {
+  id: string
+  guide_id: string
+  client_name: string
+  client_email: string
+  subject: string
+  status: string
+  last_message_at: string
+  created_at: string
+}
+
+export interface Message {
+  id: string
+  conversation_id: string
+  sender_type: 'guide' | 'client'
+  content: string
+  is_read: boolean
+  created_at: string
+}
+
+export function useConversations() {
+  const { guide } = useAuth()
+
+  return useQuery({
+    queryKey: ['conversations', guide?.id],
+    queryFn: async () => {
+      if (!supabase || !guide?.id) return []
+      const { data, error } = await supabase
+        .from('conversations')
+        .select('*')
+        .eq('guide_id', guide.id)
+        .order('last_message_at', { ascending: false })
+      if (error) throw error
+      return data as Conversation[]
+    },
+    enabled: !!guide?.id,
+  })
+}
+
+export function useMessages(conversationId: string | null) {
+  return useQuery({
+    queryKey: ['messages', conversationId],
+    queryFn: async () => {
+      if (!supabase || !conversationId) return []
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true })
+      if (error) throw error
+      return data as Message[]
+    },
+    enabled: !!conversationId,
+  })
+}
+
+export function useSendMessage() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ conversationId, content }: { conversationId: string; content: string }) => {
+      if (!supabase) throw new Error('No supabase client')
+      const { error } = await supabase
+        .from('messages')
+        .insert({ conversation_id: conversationId, sender_type: 'guide', content, is_read: true })
+      if (error) throw error
+      // Update last_message_at
+      await supabase
+        .from('conversations')
+        .update({ last_message_at: new Date().toISOString() })
+        .eq('id', conversationId)
+    },
+    onSuccess: (_, { conversationId }) => {
+      queryClient.invalidateQueries({ queryKey: ['messages', conversationId] })
+      queryClient.invalidateQueries({ queryKey: ['conversations'] })
+    },
+  })
+}
+
 // Dashboard stats
 export function useDashboardStats() {
   const { guide } = useAuth()

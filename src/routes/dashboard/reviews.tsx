@@ -128,7 +128,6 @@ function ReviewsPage() {
                     <Button variant="outline" size="sm" onClick={() => { setSelectedReview(review); setResponseText(review.guide_response || '') }} leftIcon={<MessageSquare className="h-4 w-4" />}>
                       {review.guide_response ? 'Edit Response' : 'Respond'}
                     </Button>
-                    <Button variant="ghost" size="sm" leftIcon={<ThumbsUp className="h-4 w-4" />}>Thank</Button>
                   </div>
                 </div>
               </div>

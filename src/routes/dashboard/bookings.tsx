@@ -136,7 +136,16 @@ function BookingsPage() {
               </>
             )}
             {selectedBooking?.status === 'confirmed' && (
-              <Button variant="outline" onClick={() => setSelectedBooking(null)} leftIcon={<MessageSquare className="h-4 w-4" />}>Message Traveler</Button>
+              <>
+                <Button variant="outline" onClick={() => { updateBooking.mutate({ id: selectedBooking.id, status: 'pending' }); setSelectedBooking(null) }}>Back to Pending</Button>
+                <Button variant="default" onClick={() => { updateBooking.mutate({ id: selectedBooking.id, status: 'completed' }); setSelectedBooking(null) }} leftIcon={<Check className="h-4 w-4" />}>Mark Complete</Button>
+              </>
+            )}
+            {selectedBooking?.status === 'completed' && (
+              <Button variant="outline" onClick={() => { updateBooking.mutate({ id: selectedBooking.id, status: 'confirmed' }); setSelectedBooking(null) }}>Reopen</Button>
+            )}
+            {selectedBooking?.status === 'cancelled' && (
+              <Button variant="outline" onClick={() => { updateBooking.mutate({ id: selectedBooking.id, status: 'pending' }); setSelectedBooking(null) }}>Restore</Button>
             )}
           </ModalFooter>
         </ModalContent>

@@ -28,8 +28,9 @@ function DashboardAnalytics() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-desert-ink">Analytics</h1>
-        <p className="text-desert-ink-soft">Track your profile performance</p>
+        <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
+        <p className="text-gray-500">Track your profile performance</p>
+        <p className="text-sm text-amber-600 mt-1">📊 Demo data shown - analytics tracking coming soon</p>
       </div>
 
       {/* Stats */}
