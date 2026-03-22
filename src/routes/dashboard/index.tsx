@@ -33,35 +33,35 @@ function DashboardOverview() {
   ]
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 lg:space-y-8 overflow-x-hidden">
       {/* Welcome Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 truncate">
             Welcome back, {guide?.full_name?.split(' ')[0] || 'Guide'}!
           </h1>
-          <p className="text-gray-500 mt-1">Here's what's happening with your tours today.</p>
+          <p className="text-sm sm:text-base text-gray-500 mt-1">Here's what's happening with your tours today.</p>
         </div>
-        <div className="flex gap-3">
-          <Button variant="outline" asChild><Link to="/dashboard/profile">Edit Profile</Link></Button>
-          {guide && <Button asChild><Link to={`/guides/${guide.id}`}>View Public Profile <ArrowRight className="h-4 w-4 ml-2" /></Link></Button>}
+        <div className="flex flex-wrap gap-2 sm:gap-3">
+          <Button variant="outline" size="sm" asChild><Link to="/dashboard/profile">Edit Profile</Link></Button>
+          {guide && <Button size="sm" asChild><Link to={`/guides/${guide.id}`}>View Public <ArrowRight className="h-4 w-4 ml-1" /></Link></Button>}
         </div>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {statsLoading ? (
-          <div className="col-span-4 flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
+          <div className="col-span-2 lg:col-span-4 flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
         ) : statCards.map((stat) => (
           <Card key={stat.label}>
-            <CardContent className="p-5">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm text-gray-500">{stat.label}</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
-                  <p className={`text-sm ${stat.color} mt-1`}>{stat.change}</p>
+            <CardContent className="p-3 sm:p-5">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-gray-500">{stat.label}</p>
+                  <p className="text-lg sm:text-2xl font-bold text-gray-900 mt-1 truncate">{stat.value}</p>
+                  <p className={`text-xs sm:text-sm ${stat.color} mt-1 truncate`}>{stat.change}</p>
                 </div>
-                <div className={`p-3 rounded-xl ${stat.bgColor} ${stat.color}`}><stat.icon className="h-6 w-6" /></div>
+                <div className={`p-2 sm:p-3 rounded-xl ${stat.bgColor} ${stat.color} flex-shrink-0`}><stat.icon className="h-5 w-5 sm:h-6 sm:w-6" /></div>
               </div>
             </CardContent>
           </Card>
@@ -84,16 +84,16 @@ function DashboardOverview() {
             ) : (
               <div className="space-y-3">
                 {upcomingBookings.map((booking) => (
-                  <div key={booking.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center"><Calendar className="h-6 w-6 text-primary" /></div>
-                      <div>
-                        <p className="font-medium text-gray-900">{new Date(booking.tour_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</p>
-                        <p className="text-sm text-gray-500">{booking.traveler_name} • {booking.group_size} people</p>
+                  <div key={booking.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-50 rounded-xl gap-2">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0"><Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-primary" /></div>
+                      <div className="min-w-0">
+                        <p className="font-medium text-gray-900 text-sm sm:text-base">{new Date(booking.tour_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</p>
+                        <p className="text-xs sm:text-sm text-gray-500 truncate">{booking.traveler_name} • {booking.group_size} people</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-medium text-gray-900">${booking.total_price}</p>
+                    <div className="flex items-center justify-between sm:justify-end gap-2 pl-13 sm:pl-0">
+                      <p className="font-medium text-gray-900 text-sm sm:text-base">${booking.total_price}</p>
                       <Badge variant={booking.status === 'confirmed' ? 'success' : 'warning'} size="sm">{booking.status}</Badge>
                     </div>
                   </div>
@@ -128,24 +128,24 @@ function DashboardOverview() {
 
       {/* Quick Actions */}
       <Card>
-        <CardHeader><CardTitle>Quick Actions</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base sm:text-lg">Quick Actions</CardTitle></CardHeader>
         <CardContent>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Link to="/dashboard/profile" className="flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-primary hover:bg-primary/5 transition-colors">
-              <div className="p-2 rounded-lg bg-primary/10 text-primary"><Users className="h-5 w-5" /></div>
-              <div><p className="font-medium text-gray-900">Update Profile</p><p className="text-sm text-gray-500">Edit your info</p></div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+            <Link to="/dashboard/profile" className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-xl border border-gray-200 hover:border-primary hover:bg-primary/5 transition-colors">
+              <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10 text-primary flex-shrink-0"><Users className="h-4 w-4 sm:h-5 sm:w-5" /></div>
+              <div className="min-w-0"><p className="font-medium text-gray-900 text-sm sm:text-base truncate">Profile</p><p className="text-xs sm:text-sm text-gray-500 hidden sm:block">Edit your info</p></div>
             </Link>
-            <Link to="/dashboard/settings" className="flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-primary hover:bg-primary/5 transition-colors">
-              <div className="p-2 rounded-lg bg-secondary/10 text-secondary"><Clock className="h-5 w-5" /></div>
-              <div><p className="font-medium text-gray-900">Set Availability</p><p className="text-sm text-gray-500">Update calendar</p></div>
+            <Link to="/dashboard/availability" className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-xl border border-gray-200 hover:border-primary hover:bg-primary/5 transition-colors">
+              <div className="p-1.5 sm:p-2 rounded-lg bg-secondary/10 text-secondary flex-shrink-0"><Clock className="h-4 w-4 sm:h-5 sm:w-5" /></div>
+              <div className="min-w-0"><p className="font-medium text-gray-900 text-sm sm:text-base truncate">Availability</p><p className="text-xs sm:text-sm text-gray-500 hidden sm:block">Update calendar</p></div>
             </Link>
-            <Link to="/dashboard/analytics" className="flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-primary hover:bg-primary/5 transition-colors">
-              <div className="p-2 rounded-lg bg-green-100 text-green-600"><TrendingUp className="h-5 w-5" /></div>
-              <div><p className="font-medium text-gray-900">View Analytics</p><p className="text-sm text-gray-500">Track performance</p></div>
+            <Link to="/dashboard/analytics" className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-xl border border-gray-200 hover:border-primary hover:bg-primary/5 transition-colors">
+              <div className="p-1.5 sm:p-2 rounded-lg bg-green-100 text-green-600 flex-shrink-0"><TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" /></div>
+              <div className="min-w-0"><p className="font-medium text-gray-900 text-sm sm:text-base truncate">Analytics</p><p className="text-xs sm:text-sm text-gray-500 hidden sm:block">Track performance</p></div>
             </Link>
-            <Link to="/dashboard/ads" className="flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-primary hover:bg-primary/5 transition-colors">
-              <div className="p-2 rounded-lg bg-accent/10 text-accent"><Zap className="h-5 w-5" /></div>
-              <div><p className="font-medium text-gray-900">Promote Profile</p><p className="text-sm text-gray-500">Boost visibility</p></div>
+            <Link to="/dashboard/bookings" className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-xl border border-gray-200 hover:border-primary hover:bg-primary/5 transition-colors">
+              <div className="p-1.5 sm:p-2 rounded-lg bg-accent/10 text-accent flex-shrink-0"><Zap className="h-4 w-4 sm:h-5 sm:w-5" /></div>
+              <div className="min-w-0"><p className="font-medium text-gray-900 text-sm sm:text-base truncate">Bookings</p><p className="text-xs sm:text-sm text-gray-500 hidden sm:block">Manage tours</p></div>
             </Link>
           </div>
         </CardContent>

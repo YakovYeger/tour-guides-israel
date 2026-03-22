@@ -20,12 +20,17 @@ function DashboardMessages() {
   const [newMessage, setNewMessage] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  // Select first conversation by default
+  // Select first conversation by default - only on initial load, not when user clears selection
+  const [hasAutoSelected, setHasAutoSelected] = useState(false)
   useEffect(() => {
-    if (conversations?.length && !selectedConversation) {
-      setSelectedConversation(conversations[0])
+    if (conversations?.length && !selectedConversation && !hasAutoSelected) {
+      // Only auto-select on desktop
+      if (window.innerWidth >= 1024) {
+        setSelectedConversation(conversations[0])
+      }
+      setHasAutoSelected(true)
     }
-  }, [conversations, selectedConversation])
+  }, [conversations, selectedConversation, hasAutoSelected])
 
   // Scroll to bottom only when sending a new message
   const scrollToBottom = () => {
