@@ -38,8 +38,11 @@ function BookingPage() {
   if (isLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
   if (!guide) return <div className="min-h-screen flex items-center justify-center"><p>Guide not found</p></div>
 
-  const pricing = guide.pricing as { hourly?: number; halfDay?: number; fullDay?: number } | null
-  const basePrice = duration === 'half' ? (pricing?.halfDay || 250) : (pricing?.fullDay || 450)
+  // Support both camelCase and snake_case pricing formats
+  const pricing = guide.pricing as { hourly?: number; halfDay?: number; fullDay?: number; half_day?: number; full_day?: number } | null
+  const halfDayPrice = pricing?.halfDay || pricing?.half_day || 250
+  const fullDayPrice = pricing?.fullDay || pricing?.full_day || 450
+  const basePrice = duration === 'half' ? halfDayPrice : fullDayPrice
   const downPayment = Math.min(100, Math.round(basePrice * 0.2))
 
   const handleSubmit = async () => {
@@ -91,13 +94,23 @@ function BookingPage() {
               {step === 'details' && (
                 <div className="space-y-6">
                   <h2 className="text-xl font-semibold">Tour Details</h2>
-                  <div><label className="block text-sm font-medium text-gray-700 mb-2">Select Date</label>
-                    <Input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} min={today} /></div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Select Date</label>
+                    <input
+                      type="date"
+                      value={selectedDate}
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                      min={today}
+                      className="w-full h-10 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+                    />
+                  </div>
                   <div><label className="block text-sm font-medium text-gray-700 mb-2">Duration</label>
                     <div className="grid grid-cols-2 gap-3">
-                      {[{ v: 'half', l: 'Half Day', d: '4-5 hours' }, { v: 'full', l: 'Full Day', d: '8-10 hours' }].map((o) => (
-                        <button key={o.v} onClick={() => setDuration(o.v as 'half' | 'full')} className={cn('p-4 rounded-lg border-2 text-left', duration === o.v ? 'border-primary bg-primary/5' : 'border-gray-200')}>
-                          <p className="font-medium">{o.l}</p><p className="text-sm text-gray-500">{o.d}</p>
+                      {[{ v: 'half', l: 'Half Day', d: '4-5 hours', price: halfDayPrice }, { v: 'full', l: 'Full Day', d: '8-10 hours', price: fullDayPrice }].map((o) => (
+                        <button key={o.v} onClick={() => setDuration(o.v as 'half' | 'full')} className={cn('p-4 rounded-lg border-2 text-left transition-all', duration === o.v ? 'border-primary bg-primary/5' : 'border-gray-200 hover:border-gray-300')}>
+                          <p className={cn('font-medium', duration === o.v ? 'text-primary' : 'text-gray-700')}>{o.l}</p>
+                          <p className="text-sm text-gray-500">{o.d}</p>
+                          <p className={cn('text-lg font-bold mt-1', duration === o.v ? 'text-primary' : 'text-gray-900')}>${o.price}</p>
                         </button>
                       ))}
                     </div></div>
