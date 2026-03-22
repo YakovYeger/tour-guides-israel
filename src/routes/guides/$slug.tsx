@@ -25,7 +25,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { PageLoading } from '@/components/ui/loading-spinner'
 import { BookingPanel } from '@/components/booking'
 import { cn } from '@/lib/utils'
-import { getSupabaseClient } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase/client'
 import { getLanguageName } from '@/data'
 import type { Guide } from '@/types/database'
 
@@ -43,7 +43,7 @@ function GuideProfilePage() {
   const { data: guide, isLoading, error } = useQuery({
     queryKey: ['guide', slug],
     queryFn: async () => {
-      const supabase = getSupabaseClient()
+      if (!supabase) return null
       const { data } = await supabase
         .from('guides')
         .select('*')

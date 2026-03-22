@@ -44,16 +44,16 @@ export function BookingPanel({ guide }: BookingPanelProps) {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
   const [bookingType, setBookingType] = useState<'inquiry' | 'instant'>('inquiry')
 
-  // Calculate pricing
-  const pricing = guide.pricing as { half_day?: number; full_day?: number; multi_day?: number } | null
+  // Calculate pricing - support both formats
+  const pricing = guide.pricing as { hourly?: number; halfDay?: number; fullDay?: number; half_day?: number; full_day?: number } | null
   const basePrice = duration === 'half'
-    ? (pricing?.half_day || 350)
+    ? (pricing?.halfDay || pricing?.half_day || 250)
     : duration === 'full'
-    ? (pricing?.full_day || 600)
-    : (pricing?.multi_day || 500)
-  
-  const totalPrice = basePrice // Could be per person or flat rate
-  const downPayment = 100
+    ? (pricing?.fullDay || pricing?.full_day || 450)
+    : ((pricing?.fullDay || pricing?.full_day || 450) * 2)
+
+  const totalPrice = basePrice
+  const downPayment = Math.min(100, Math.round(totalPrice * 0.2)) // 20% or $100, whichever is lower
 
   const availableDurations = guide.tour_duration_options || ['half', 'full']
   const maxGroupSize = guide.max_group_size || 10
@@ -184,20 +184,12 @@ export function BookingPanel({ guide }: BookingPanelProps) {
 
           {/* Booking Buttons */}
           <div className="space-y-3">
-            {(guide as any).instant_book_enabled ? (
-              <>
-                <Button fullWidth size="lg" onClick={() => handleBooking('instant')} disabled={!selectedDate} leftIcon={<Zap className="h-5 w-5" />}>
-                  Instant Book
-                </Button>
-                <Button fullWidth size="lg" variant="outline" onClick={() => handleBooking('inquiry')} leftIcon={<MessageSquare className="h-5 w-5" />}>
-                  Send Inquiry
-                </Button>
-              </>
-            ) : (
-              <Button fullWidth size="lg" onClick={() => handleBooking('inquiry')} disabled={!selectedDate} leftIcon={<MessageSquare className="h-5 w-5" />}>
-                Request to Book
-              </Button>
-            )}
+            <Button fullWidth size="lg" onClick={() => navigate({ to: `/book/${guide.id}` })} leftIcon={<Zap className="h-5 w-5" />}>
+              Book Now
+            </Button>
+            <Button fullWidth size="lg" variant="outline" onClick={() => handleBooking('inquiry')} leftIcon={<MessageSquare className="h-5 w-5" />}>
+              Send Message
+            </Button>
           </div>
 
           {/* Trust Indicators */}

@@ -31,6 +31,7 @@ import { Route as DashboardBookingsRouteImport } from './routes/dashboard/bookin
 import { Route as DashboardAvailabilityRouteImport } from './routes/dashboard/availability'
 import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard/analytics'
 import { Route as BookingConfirmationRouteImport } from './routes/booking/confirmation'
+import { Route as BookGuideIdRouteImport } from './routes/book/$guideId'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 
 const SignupRoute = SignupRouteImport.update({
@@ -143,6 +144,11 @@ const BookingConfirmationRoute = BookingConfirmationRouteImport.update({
   path: '/booking/confirmation',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BookGuideIdRoute = BookGuideIdRouteImport.update({
+  id: '/book/$guideId',
+  path: '/book/$guideId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/auth/callback',
   path: '/auth/callback',
@@ -159,6 +165,7 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/book/$guideId': typeof BookGuideIdRoute
   '/booking/confirmation': typeof BookingConfirmationRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/availability': typeof DashboardAvailabilityRoute
@@ -183,6 +190,7 @@ export interface FileRoutesByTo {
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/book/$guideId': typeof BookGuideIdRoute
   '/booking/confirmation': typeof BookingConfirmationRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/availability': typeof DashboardAvailabilityRoute
@@ -209,6 +217,7 @@ export interface FileRoutesById {
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/book/$guideId': typeof BookGuideIdRoute
   '/booking/confirmation': typeof BookingConfirmationRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/availability': typeof DashboardAvailabilityRoute
@@ -236,6 +245,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/signup'
     | '/auth/callback'
+    | '/book/$guideId'
     | '/booking/confirmation'
     | '/dashboard/analytics'
     | '/dashboard/availability'
@@ -260,6 +270,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/signup'
     | '/auth/callback'
+    | '/book/$guideId'
     | '/booking/confirmation'
     | '/dashboard/analytics'
     | '/dashboard/availability'
@@ -285,6 +296,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/signup'
     | '/auth/callback'
+    | '/book/$guideId'
     | '/booking/confirmation'
     | '/dashboard/analytics'
     | '/dashboard/availability'
@@ -311,6 +323,7 @@ export interface RootRouteChildren {
   PricingRoute: typeof PricingRoute
   SignupRoute: typeof SignupRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
+  BookGuideIdRoute: typeof BookGuideIdRoute
   BookingConfirmationRoute: typeof BookingConfirmationRoute
   ForGuidesRegisterRoute: typeof ForGuidesRegisterRoute
   ForGuidesSuccessRoute: typeof ForGuidesSuccessRoute
@@ -475,6 +488,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BookingConfirmationRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/book/$guideId': {
+      id: '/book/$guideId'
+      path: '/book/$guideId'
+      fullPath: '/book/$guideId'
+      preLoaderRoute: typeof BookGuideIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth/callback': {
       id: '/auth/callback'
       path: '/auth/callback'
@@ -521,6 +541,7 @@ const rootRouteChildren: RootRouteChildren = {
   PricingRoute: PricingRoute,
   SignupRoute: SignupRoute,
   AuthCallbackRoute: AuthCallbackRoute,
+  BookGuideIdRoute: BookGuideIdRoute,
   BookingConfirmationRoute: BookingConfirmationRoute,
   ForGuidesRegisterRoute: ForGuidesRegisterRoute,
   ForGuidesSuccessRoute: ForGuidesSuccessRoute,
