@@ -28,24 +28,24 @@ function DashboardAnalytics() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
-        <p className="text-gray-500">Track your profile performance</p>
-        <p className="text-sm text-amber-600 mt-1">📊 Demo data shown - analytics tracking coming soon</p>
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Analytics</h1>
+        <p className="text-sm sm:text-base text-gray-500">Track your profile performance</p>
+        <p className="text-xs sm:text-sm text-amber-600 mt-1">📊 Demo data shown - analytics tracking coming soon</p>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {stats.map((stat) => (
           <Card key={stat.label}>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-desert-ink-soft">{stat.label}</p>
-                  <p className="text-2xl font-bold text-desert-ink mt-1">{stat.value}</p>
-                  <p className="text-sm text-green-600 mt-1">{stat.change} vs last month</p>
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-gray-500">{stat.label}</p>
+                  <p className="text-lg sm:text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
+                  <p className="text-xs sm:text-sm text-green-600 mt-1 truncate">{stat.change}</p>
                 </div>
-                <div className="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center text-sunset">
-                  <stat.icon className="h-6 w-6" />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+                  <stat.icon className="h-5 w-5 sm:h-6 sm:w-6" />
                 </div>
               </div>
             </CardContent>

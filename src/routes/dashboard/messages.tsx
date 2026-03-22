@@ -61,22 +61,25 @@ function DashboardMessages() {
     )
   }
 
+  // On mobile, show either conversation list or chat view
+  const showChatOnMobile = selectedConversation !== null
+
   return (
-    <div className="h-[calc(100vh-8rem)]">
-      <div className="flex items-center justify-between mb-6">
+    <div className="h-[calc(100vh-12rem)] lg:h-[calc(100vh-8rem)]">
+      <div className="flex items-center justify-between mb-4 lg:mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Messages</h1>
-          <p className="text-gray-500">Communicate with your clients</p>
+          <h1 className="text-xl lg:text-2xl font-bold text-gray-900">Messages</h1>
+          <p className="text-sm lg:text-base text-gray-500 hidden sm:block">Communicate with your clients</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[calc(100%-4rem)]">
-        {/* Conversations List */}
-        <Card className="lg:col-span-1 flex flex-col">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[calc(100%-3rem)]">
+        {/* Conversations List - hidden on mobile when chat is open */}
+        <Card className={cn('lg:col-span-1 flex flex-col', showChatOnMobile ? 'hidden lg:flex' : 'flex')}>
           <CardHeader className="pb-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input placeholder="Search conversations..." className="pl-10" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+              <Input placeholder="Search..." className="pl-10" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
             </div>
           </CardHeader>
           <CardContent className="flex-1 overflow-y-auto p-2">
@@ -110,18 +113,24 @@ function DashboardMessages() {
           </CardContent>
         </Card>
 
-        {/* Messages */}
-        <Card className="lg:col-span-2 flex flex-col">
+        {/* Messages - hidden on mobile when no chat selected */}
+        <Card className={cn('lg:col-span-2 flex flex-col', !showChatOnMobile ? 'hidden lg:flex' : 'flex')}>
           {selectedConversation ? (
             <>
-              <CardHeader className="border-b">
+              <CardHeader className="border-b py-3">
                 <div className="flex items-center gap-3">
+                  {/* Back button on mobile */}
+                  <button onClick={() => setSelectedConversation(null)} className="lg:hidden p-1 -ml-1 hover:bg-gray-100 rounded">
+                    <svg className="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
                     {selectedConversation.client_name.charAt(0)}
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">{selectedConversation.client_name}</h3>
-                    <p className="text-sm text-gray-500">{selectedConversation.subject}</p>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-semibold text-gray-900 truncate">{selectedConversation.client_name}</h3>
+                    <p className="text-sm text-gray-500 truncate">{selectedConversation.subject}</p>
                   </div>
                 </div>
               </CardHeader>

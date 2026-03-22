@@ -98,15 +98,15 @@ function AvailabilityPage() {
 
   return (
     <div className="space-y-6 max-w-4xl">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Availability</h1>
-          <p className="text-gray-500">Set your weekly schedule and block specific dates</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Availability</h1>
+          <p className="text-sm sm:text-base text-gray-500">Set your weekly schedule and block specific dates</p>
         </div>
-        <Button onClick={handleSave} disabled={isLoading}>
-          {isLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : 
+        <Button onClick={handleSave} disabled={isLoading} className="self-start sm:self-auto">
+          {isLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> :
            saveStatus === 'saved' ? <Check className="h-4 w-4 mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-          {saveStatus === 'saving' ? 'Saving...' : saveStatus === 'saved' ? 'Saved!' : 'Save Changes'}
+          {saveStatus === 'saving' ? 'Saving...' : saveStatus === 'saved' ? 'Saved!' : 'Save'}
         </Button>
       </div>
 
@@ -115,13 +115,13 @@ function AvailabilityPage() {
         <CardHeader><CardTitle className="flex items-center gap-2"><Clock className="h-5 w-5" /> Weekly Schedule</CardTitle></CardHeader>
         <CardContent>
           <p className="text-sm text-gray-500 mb-4">Select the days you're generally available for tours</p>
-          <div className="flex flex-wrap gap-3">
+          <div className="grid grid-cols-4 sm:grid-cols-7 gap-2 sm:gap-3">
             {DAYS.map((day, i) => (
               <button key={day} onClick={() => toggleDay(day)}
-                className={cn('w-16 h-16 rounded-xl border-2 flex flex-col items-center justify-center transition-all',
+                className={cn('w-full aspect-square sm:w-16 sm:h-16 rounded-xl border-2 flex flex-col items-center justify-center transition-all',
                   availability[day] ? 'border-primary bg-primary/10 text-primary' : 'border-gray-200 text-gray-400 hover:border-gray-300')}>
-                <span className="text-sm font-semibold">{DAY_LABELS[i]}</span>
-                {availability[day] && <Check className="h-4 w-4 mt-1" />}
+                <span className="text-xs sm:text-sm font-semibold">{DAY_LABELS[i]}</span>
+                {availability[day] && <Check className="h-3 w-3 sm:h-4 sm:w-4 mt-0.5 sm:mt-1" />}
               </button>
             ))}
           </div>

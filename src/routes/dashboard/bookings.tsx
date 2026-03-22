@@ -34,19 +34,19 @@ function BookingsPage() {
   const confirmedCount = filteredBookings.filter(b => b.status === 'confirmed').length
 
   const BookingCard = ({ booking }: { booking: Booking }) => (
-    <div onClick={() => setSelectedBooking(booking)} className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl hover:border-primary cursor-pointer transition-colors">
-      <div className="flex items-center gap-4">
-        <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center">
-          <Calendar className="h-7 w-7 text-primary" />
+    <div onClick={() => setSelectedBooking(booking)} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white border border-gray-200 rounded-xl hover:border-primary cursor-pointer transition-colors gap-3">
+      <div className="flex items-center gap-3 sm:gap-4">
+        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+          <Calendar className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
         </div>
-        <div>
+        <div className="min-w-0">
           <p className="font-semibold text-gray-900">{new Date(booking.tour_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</p>
-          <p className="text-sm text-gray-500">{booking.group_size} {booking.group_size === 1 ? 'person' : 'people'} • {booking.duration === 'half' ? 'Half Day' : 'Full Day'}</p>
-          <p className="text-sm text-gray-500">{booking.traveler_name}</p>
+          <p className="text-sm text-gray-500 truncate">{booking.group_size} {booking.group_size === 1 ? 'person' : 'people'} • {booking.duration === 'half' ? 'Half Day' : 'Full Day'}</p>
+          <p className="text-sm text-gray-500 truncate">{booking.traveler_name}</p>
         </div>
       </div>
-      <div className="flex items-center gap-4">
-        <div className="text-right">
+      <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 pl-15 sm:pl-0">
+        <div className="text-left sm:text-right">
           <p className="font-semibold text-gray-900">${booking.total_price}</p>
           <p className="text-xs text-gray-500">${booking.down_payment} paid</p>
         </div>
