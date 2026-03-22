@@ -18,9 +18,9 @@ function Calendar({
       classNames={{
         months: "flex flex-col",
         month: "space-y-4",
-        month_caption: "flex justify-center relative items-center h-9",
+        month_caption: "flex items-center justify-between px-1 pb-2",
         caption_label: "text-sm font-medium",
-        nav: "flex items-center justify-between absolute inset-x-1 top-1/2 -translate-y-1/2",
+        nav: "flex items-center gap-1",
         button_previous: "h-7 w-7 bg-transparent p-0 hover:opacity-100 inline-flex items-center justify-center rounded-md border border-gray-200 hover:bg-gray-100",
         button_next: "h-7 w-7 bg-transparent p-0 hover:opacity-100 inline-flex items-center justify-center rounded-md border border-gray-200 hover:bg-gray-100",
         month_grid: "w-full border-collapse",
