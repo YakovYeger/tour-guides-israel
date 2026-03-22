@@ -23,9 +23,12 @@ import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as GuidesSlugRouteImport } from './routes/guides/$slug'
 import { Route as ForGuidesSuccessRouteImport } from './routes/for-guides/success'
 import { Route as ForGuidesRegisterRouteImport } from './routes/for-guides/register'
+import { Route as DashboardSettingsRouteImport } from './routes/dashboard/settings'
+import { Route as DashboardReviewsRouteImport } from './routes/dashboard/reviews'
 import { Route as DashboardProfileRouteImport } from './routes/dashboard/profile'
 import { Route as DashboardMessagesRouteImport } from './routes/dashboard/messages'
 import { Route as DashboardBookingsRouteImport } from './routes/dashboard/bookings'
+import { Route as DashboardAvailabilityRouteImport } from './routes/dashboard/availability'
 import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard/analytics'
 import { Route as BookingConfirmationRouteImport } from './routes/booking/confirmation'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
@@ -100,6 +103,16 @@ const ForGuidesRegisterRoute = ForGuidesRegisterRouteImport.update({
   path: '/for-guides/register',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
+const DashboardReviewsRoute = DashboardReviewsRouteImport.update({
+  id: '/reviews',
+  path: '/reviews',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
 const DashboardProfileRoute = DashboardProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -113,6 +126,11 @@ const DashboardMessagesRoute = DashboardMessagesRouteImport.update({
 const DashboardBookingsRoute = DashboardBookingsRouteImport.update({
   id: '/bookings',
   path: '/bookings',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
+const DashboardAvailabilityRoute = DashboardAvailabilityRouteImport.update({
+  id: '/availability',
+  path: '/availability',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
 const DashboardAnalyticsRoute = DashboardAnalyticsRouteImport.update({
@@ -143,9 +161,12 @@ export interface FileRoutesByFullPath {
   '/auth/callback': typeof AuthCallbackRoute
   '/booking/confirmation': typeof BookingConfirmationRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
+  '/dashboard/availability': typeof DashboardAvailabilityRoute
   '/dashboard/bookings': typeof DashboardBookingsRoute
   '/dashboard/messages': typeof DashboardMessagesRoute
   '/dashboard/profile': typeof DashboardProfileRoute
+  '/dashboard/reviews': typeof DashboardReviewsRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
   '/for-guides/register': typeof ForGuidesRegisterRoute
   '/for-guides/success': typeof ForGuidesSuccessRoute
   '/guides/$slug': typeof GuidesSlugRoute
@@ -164,9 +185,12 @@ export interface FileRoutesByTo {
   '/auth/callback': typeof AuthCallbackRoute
   '/booking/confirmation': typeof BookingConfirmationRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
+  '/dashboard/availability': typeof DashboardAvailabilityRoute
   '/dashboard/bookings': typeof DashboardBookingsRoute
   '/dashboard/messages': typeof DashboardMessagesRoute
   '/dashboard/profile': typeof DashboardProfileRoute
+  '/dashboard/reviews': typeof DashboardReviewsRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
   '/for-guides/register': typeof ForGuidesRegisterRoute
   '/for-guides/success': typeof ForGuidesSuccessRoute
   '/guides/$slug': typeof GuidesSlugRoute
@@ -187,9 +211,12 @@ export interface FileRoutesById {
   '/auth/callback': typeof AuthCallbackRoute
   '/booking/confirmation': typeof BookingConfirmationRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
+  '/dashboard/availability': typeof DashboardAvailabilityRoute
   '/dashboard/bookings': typeof DashboardBookingsRoute
   '/dashboard/messages': typeof DashboardMessagesRoute
   '/dashboard/profile': typeof DashboardProfileRoute
+  '/dashboard/reviews': typeof DashboardReviewsRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
   '/for-guides/register': typeof ForGuidesRegisterRoute
   '/for-guides/success': typeof ForGuidesSuccessRoute
   '/guides/$slug': typeof GuidesSlugRoute
@@ -211,9 +238,12 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/booking/confirmation'
     | '/dashboard/analytics'
+    | '/dashboard/availability'
     | '/dashboard/bookings'
     | '/dashboard/messages'
     | '/dashboard/profile'
+    | '/dashboard/reviews'
+    | '/dashboard/settings'
     | '/for-guides/register'
     | '/for-guides/success'
     | '/guides/$slug'
@@ -232,9 +262,12 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/booking/confirmation'
     | '/dashboard/analytics'
+    | '/dashboard/availability'
     | '/dashboard/bookings'
     | '/dashboard/messages'
     | '/dashboard/profile'
+    | '/dashboard/reviews'
+    | '/dashboard/settings'
     | '/for-guides/register'
     | '/for-guides/success'
     | '/guides/$slug'
@@ -254,9 +287,12 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/booking/confirmation'
     | '/dashboard/analytics'
+    | '/dashboard/availability'
     | '/dashboard/bookings'
     | '/dashboard/messages'
     | '/dashboard/profile'
+    | '/dashboard/reviews'
+    | '/dashboard/settings'
     | '/for-guides/register'
     | '/for-guides/success'
     | '/guides/$slug'
@@ -383,6 +419,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ForGuidesRegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/settings': {
+      id: '/dashboard/settings'
+      path: '/settings'
+      fullPath: '/dashboard/settings'
+      preLoaderRoute: typeof DashboardSettingsRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/reviews': {
+      id: '/dashboard/reviews'
+      path: '/reviews'
+      fullPath: '/dashboard/reviews'
+      preLoaderRoute: typeof DashboardReviewsRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
     '/dashboard/profile': {
       id: '/dashboard/profile'
       path: '/profile'
@@ -402,6 +452,13 @@ declare module '@tanstack/react-router' {
       path: '/bookings'
       fullPath: '/dashboard/bookings'
       preLoaderRoute: typeof DashboardBookingsRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/availability': {
+      id: '/dashboard/availability'
+      path: '/availability'
+      fullPath: '/dashboard/availability'
+      preLoaderRoute: typeof DashboardAvailabilityRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
     '/dashboard/analytics': {
@@ -430,17 +487,23 @@ declare module '@tanstack/react-router' {
 
 interface DashboardRouteRouteChildren {
   DashboardAnalyticsRoute: typeof DashboardAnalyticsRoute
+  DashboardAvailabilityRoute: typeof DashboardAvailabilityRoute
   DashboardBookingsRoute: typeof DashboardBookingsRoute
   DashboardMessagesRoute: typeof DashboardMessagesRoute
   DashboardProfileRoute: typeof DashboardProfileRoute
+  DashboardReviewsRoute: typeof DashboardReviewsRoute
+  DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
 const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
   DashboardAnalyticsRoute: DashboardAnalyticsRoute,
+  DashboardAvailabilityRoute: DashboardAvailabilityRoute,
   DashboardBookingsRoute: DashboardBookingsRoute,
   DashboardMessagesRoute: DashboardMessagesRoute,
   DashboardProfileRoute: DashboardProfileRoute,
+  DashboardReviewsRoute: DashboardReviewsRoute,
+  DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardIndexRoute: DashboardIndexRoute,
 }
 

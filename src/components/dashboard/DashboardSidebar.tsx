@@ -16,14 +16,12 @@ import { cn } from '@/lib/utils'
 
 const menuItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Overview', exact: true },
+  { href: '/dashboard/bookings', icon: CalendarDays, label: 'Bookings' },
+  { href: '/dashboard/messages', icon: MessageSquare, label: 'Messages' },
   { href: '/dashboard/profile', icon: User, label: 'Profile' },
   { href: '/dashboard/availability', icon: Calendar, label: 'Availability' },
   { href: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
-  { href: '/dashboard/messages', icon: MessageSquare, label: 'Messages' },
   { href: '/dashboard/reviews', icon: Star, label: 'Reviews' },
-  { href: '/dashboard/blog', icon: FileText, label: 'Blog' },
-  { href: '/dashboard/events', icon: CalendarDays, label: 'Events' },
-  { href: '/dashboard/membership', icon: CreditCard, label: 'Membership' },
   { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
 ]
 
