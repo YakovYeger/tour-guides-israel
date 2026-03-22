@@ -1,11 +1,13 @@
 import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { format } from 'date-fns'
 import { ChevronLeft, Check, CreditCard, Shield, Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { DatePicker } from '@/components/ui/date-picker'
 import { cn } from '@/lib/utils'
 import type { Guide } from '@/types/database'
 
@@ -20,7 +22,7 @@ function BookingPage() {
   const navigate = useNavigate()
   const [step, setStep] = useState<BookingStep>('details')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [selectedDate, setSelectedDate] = useState('')
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
   const [duration, setDuration] = useState<'half' | 'full'>('full')
   const [groupSize, setGroupSize] = useState(2)
   const [specialRequests, setSpecialRequests] = useState('')
@@ -50,15 +52,15 @@ function BookingPage() {
     setIsSubmitting(true)
     const { error } = await supabase.from('bookings').insert({
       guide_id: guideId, traveler_name: contactInfo.name, traveler_email: contactInfo.email,
-      traveler_phone: contactInfo.phone, tour_date: selectedDate, duration, group_size: groupSize,
-      special_requests: specialRequests, total_price: basePrice, down_payment: downPayment, status: 'pending',
+      traveler_phone: contactInfo.phone, tour_date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null,
+      duration, group_size: groupSize, special_requests: specialRequests,
+      total_price: basePrice, down_payment: downPayment, status: 'pending',
     })
     setIsSubmitting(false)
     if (!error) setStep('confirm')
   }
 
   const steps = [{ id: 'details', label: 'Details' }, { id: 'contact', label: 'Contact' }, { id: 'payment', label: 'Payment' }]
-  const today = new Date().toISOString().split('T')[0]
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -96,24 +98,12 @@ function BookingPage() {
                   <h2 className="text-xl font-semibold">Tour Details</h2>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Select Date</label>
-                    <div
-                      className="relative cursor-pointer"
-                      onClick={() => document.getElementById('tour-date-input')?.showPicker?.()}
-                    >
-                      <input
-                        id="tour-date-input"
-                        type="date"
-                        value={selectedDate}
-                        onChange={(e) => setSelectedDate(e.target.value)}
-                        min={today}
-                        className="w-full h-12 px-4 py-2 pr-12 border border-gray-300 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary cursor-pointer bg-white [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-                      />
-                      <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                      </div>
-                    </div>
+                    <DatePicker
+                      date={selectedDate}
+                      onDateChange={setSelectedDate}
+                      minDate={new Date()}
+                      placeholder="Choose your tour date"
+                    />
                   </div>
                   <div><label className="block text-sm font-medium text-gray-700 mb-2">Duration</label>
                     <div className="grid grid-cols-2 gap-3">
