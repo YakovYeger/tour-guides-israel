@@ -44,18 +44,19 @@ export function BookingPanel({ guide }: BookingPanelProps) {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
   const [bookingType, setBookingType] = useState<'inquiry' | 'instant'>('inquiry')
 
-  // Calculate pricing - support both formats
-  const pricing = guide.pricing as { hourly?: number; halfDay?: number; fullDay?: number; half_day?: number; full_day?: number } | null
-  const basePrice = duration === 'half'
-    ? (pricing?.halfDay || pricing?.half_day || 250)
-    : duration === 'full'
-    ? (pricing?.fullDay || pricing?.full_day || 450)
-    : ((pricing?.fullDay || pricing?.full_day || 450) * 2)
+  // Calculate pricing - support both camelCase and snake_case formats
+  const pricing = guide.pricing as { hourly?: number; halfDay?: number; fullDay?: number; half_day?: number; full_day?: number; multi_day?: number } | null
 
+  // Calculate prices for each duration
+  const halfDayPrice = pricing?.halfDay || pricing?.half_day || 250
+  const fullDayPrice = pricing?.fullDay || pricing?.full_day || 450
+
+  // Get current price based on selected duration
+  const basePrice = duration === 'half' ? halfDayPrice : fullDayPrice
   const totalPrice = basePrice
-  const downPayment = Math.min(100, Math.round(totalPrice * 0.2)) // 20% or $100, whichever is lower
+  const downPayment = Math.min(100, Math.round(totalPrice * 0.2))
 
-  const availableDurations = guide.tour_duration_options || ['half', 'full']
+  const availableDurations: TourDuration[] = ['half', 'full']
   const maxGroupSize = guide.max_group_size || 10
 
   const handleBooking = (type: 'inquiry' | 'instant') => {
@@ -92,23 +93,32 @@ export function BookingPanel({ guide }: BookingPanelProps) {
           </div>
 
           {/* Duration Selector */}
+          {/* Duration Selector with Prices */}
           <div className="mb-4">
             <label className="text-sm font-medium text-gray-700 mb-2 block">Tour Duration</label>
-            <div className="flex gap-2">
-              {availableDurations.map((d) => (
-                <button
-                  key={d}
-                  onClick={() => setDuration(d as TourDuration)}
-                  className={cn(
-                    'flex-1 py-2.5 px-4 rounded-lg border-2 text-sm font-medium transition-all',
-                    duration === d
-                      ? 'border-primary bg-primary/5 text-primary'
-                      : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                  )}
-                >
-                  {DURATION_LABELS[d] || d}
-                </button>
-              ))}
+            <div className="grid grid-cols-2 gap-2">
+              {availableDurations.map((d) => {
+                const price = d === 'half' ? halfDayPrice : fullDayPrice
+                return (
+                  <button
+                    key={d}
+                    onClick={() => setDuration(d)}
+                    className={cn(
+                      'py-3 px-4 rounded-lg border-2 text-left transition-all',
+                      duration === d
+                        ? 'border-primary bg-primary/5'
+                        : 'border-gray-200 hover:border-gray-300'
+                    )}
+                  >
+                    <span className={cn('text-sm font-medium block', duration === d ? 'text-primary' : 'text-gray-600')}>
+                      {DURATION_LABELS[d]}
+                    </span>
+                    <span className={cn('text-lg font-bold', duration === d ? 'text-primary' : 'text-gray-900')}>
+                      ${price}
+                    </span>
+                  </button>
+                )
+              })}
             </div>
           </div>
 
