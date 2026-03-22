@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useSearch, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, Link, useSearch } from '@tanstack/react-router'
 import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
@@ -10,6 +10,9 @@ import {
   Grid,
   List,
   X,
+  ChevronDown,
+  Star,
+  DollarSign,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -18,10 +21,10 @@ import { Rating } from '@/components/ui/rating'
 import { Checkbox } from '@/components/ui/checkbox'
 import { PageLoading } from '@/components/ui/loading-spinner'
 import { cn } from '@/lib/utils'
-import { getSupabaseClient } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase/client'
 import { regions as allRegions } from '@/data/regions'
 import { themes as allThemes } from '@/data/themes'
-import { languages as allLanguages, getLanguageName } from '@/data'
+import { getLanguageName } from '@/data'
 import type { Guide } from '@/types/database'
 
 type SearchParams = {
@@ -51,14 +54,17 @@ interface DirectoryFilters {
   languages: string[]
   licensed: boolean
   instantBook: boolean
+  priceRange: [number, number]
 }
+
+type SortOption = 'featured' | 'rating' | 'price_low' | 'price_high' | 'experience'
 
 function GuidesPage() {
   const searchParams = useSearch({ from: '/guides/' })
-  const navigate = useNavigate()
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [searchQuery, setSearchQuery] = useState(searchParams.q || '')
+  const [sortBy, setSortBy] = useState<SortOption>('featured')
 
   const [filters, setFilters] = useState<DirectoryFilters>({
     regions: searchParams.region ? [searchParams.region] : [],
@@ -66,19 +72,19 @@ function GuidesPage() {
     languages: [],
     licensed: false,
     instantBook: false,
+    priceRange: [0, 1000],
   })
 
   // Fetch guides from Supabase
   const { data: guides = [], isLoading } = useQuery({
-    queryKey: ['guides', filters, searchQuery],
+    queryKey: ['guides'],
     queryFn: async () => {
-      const supabase = getSupabaseClient()
-      let query = supabase
+      if (!supabase) return []
+      const { data } = await supabase
         .from('guides')
         .select('*')
         .eq('status', 'approved')
-
-      const { data } = await query.order('search_boost_score', { ascending: false })
+        .order('is_featured', { ascending: false })
       return (data || []) as Guide[]
     },
   })
@@ -106,7 +112,8 @@ function GuidesPage() {
 
     if (filters.themes.length) {
       results = results.filter((guide) =>
-        guide.tour_types?.some((t) => filters.themes.includes(t.toLowerCase()))
+        guide.specialties?.some((s) => filters.themes.some(t => s.toLowerCase().includes(t.toLowerCase()))) ||
+        guide.tour_types?.some((t) => filters.themes.some(f => t.toLowerCase().includes(f.toLowerCase())))
       )
     }
 
@@ -124,14 +131,29 @@ function GuidesPage() {
       results = results.filter((guide) => (guide as any).instant_book_enabled)
     }
 
-    // Sort: Featured first, then by score
+    // Sort based on selection
     results.sort((a, b) => {
+      // Featured always first
       if (a.is_featured !== b.is_featured) return b.is_featured ? 1 : -1
-      return (b.search_boost_score || 0) - (a.search_boost_score || 0)
+
+      const priceA = (a.pricing as any)?.hourly || 0
+      const priceB = (b.pricing as any)?.hourly || 0
+
+      switch (sortBy) {
+        case 'price_low':
+          return priceA - priceB
+        case 'price_high':
+          return priceB - priceA
+        case 'experience':
+          return (b.years_experience || 0) - (a.years_experience || 0)
+        case 'rating':
+        default:
+          return (b.search_boost_score || 0) - (a.search_boost_score || 0)
+      }
     })
 
     return results
-  }, [guides, searchQuery, filters])
+  }, [guides, searchQuery, filters, sortBy])
 
   const toggleArrayFilter = (key: 'regions' | 'themes' | 'languages', value: string) => {
     setFilters((prev) => {
@@ -144,9 +166,17 @@ function GuidesPage() {
   }
 
   const clearFilters = () => {
-    setFilters({ regions: [], themes: [], languages: [], licensed: false, instantBook: false })
+    setFilters({ regions: [], themes: [], languages: [], licensed: false, instantBook: false, priceRange: [0, 1000] })
     setSearchQuery('')
   }
+
+  const sortOptions: { value: SortOption; label: string }[] = [
+    { value: 'featured', label: 'Featured' },
+    { value: 'rating', label: 'Highest Rated' },
+    { value: 'price_low', label: 'Price: Low to High' },
+    { value: 'price_high', label: 'Price: High to Low' },
+    { value: 'experience', label: 'Most Experienced' },
+  ]
 
   const activeFilterCount = useMemo(() => {
     let count = 0
@@ -214,7 +244,7 @@ function GuidesPage() {
                 </div>
               </FilterSection>
 
-              <FilterSection title="Themes">
+              <FilterSection title="Specialties">
                 <div className="space-y-2 max-h-48 overflow-y-auto">
                   {allThemes.map((theme) => (
                     <label key={theme.id} className="flex items-center gap-2 cursor-pointer">
@@ -223,6 +253,20 @@ function GuidesPage() {
                         onCheckedChange={() => toggleArrayFilter('themes', theme.slug)}
                       />
                       <span className="text-sm text-gray-700">{theme.icon} {theme.name}</span>
+                    </label>
+                  ))}
+                </div>
+              </FilterSection>
+
+              <FilterSection title="Languages">
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {['English', 'Hebrew', 'Spanish', 'French', 'German', 'Russian', 'Chinese', 'Arabic'].map((lang) => (
+                    <label key={lang} className="flex items-center gap-2 cursor-pointer">
+                      <Checkbox
+                        checked={filters.languages.includes(lang)}
+                        onCheckedChange={() => toggleArrayFilter('languages', lang)}
+                      />
+                      <span className="text-sm text-gray-700">{lang}</span>
                     </label>
                   ))}
                 </div>
@@ -252,7 +296,7 @@ function GuidesPage() {
           {/* Main Content */}
           <div className="flex-1 min-w-0">
             {/* Toolbar */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <div className="flex items-center gap-4">
                 <p className="text-gray-500">
                   <span className="font-medium text-gray-900">{filteredGuides.length}</span> guides found
@@ -262,18 +306,33 @@ function GuidesPage() {
                 )}
               </div>
               <div className="flex items-center gap-3">
+                {/* Sort Dropdown */}
+                <div className="relative">
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as SortOption)}
+                    className="appearance-none bg-white border border-gray-200 rounded-lg px-4 py-2 pr-10 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+                  >
+                    {sortOptions.map((opt) => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                </div>
+                {/* Mobile Filters Button */}
                 <button
                   onClick={() => setIsFilterOpen(true)}
                   className="lg:hidden flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-gray-600 hover:border-primary hover:text-primary"
                 >
                   <SlidersHorizontal className="h-4 w-4" />
-                  Filters
+                  <span className="hidden sm:inline">Filters</span>
                   {activeFilterCount > 0 && (
                     <span className="min-w-[20px] h-5 px-1 flex items-center justify-center text-xs font-medium rounded-full bg-primary text-white">
                       {activeFilterCount}
                     </span>
                   )}
                 </button>
+                {/* View Mode Toggle */}
                 <div className="hidden sm:flex items-center border border-gray-200 rounded-lg overflow-hidden">
                   <button
                     onClick={() => setViewMode('grid')}
@@ -402,10 +461,18 @@ function GuideCard({ guide }: { guide: Guide }) {
             </div>
           )}
         </div>
-        <CardContent className="p-5">
-          <h3 className="font-semibold text-lg text-gray-900 group-hover:text-primary transition-colors">
-            {guide.full_name}
-          </h3>
+        <CardContent className="p-4 sm:p-5">
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="font-semibold text-lg text-gray-900 group-hover:text-primary transition-colors">
+              {guide.full_name}
+            </h3>
+            {(guide.pricing as any)?.hourly && (
+              <div className="text-right flex-shrink-0">
+                <p className="text-lg font-bold text-primary">${(guide.pricing as any).hourly}</p>
+                <p className="text-xs text-gray-400">/hour</p>
+              </div>
+            )}
+          </div>
           {guide.business_name && (
             <p className="text-sm text-gray-500 mt-0.5">{guide.business_name}</p>
           )}
@@ -417,14 +484,13 @@ function GuideCard({ guide }: { guide: Guide }) {
             <Rating value={4.8} size="sm" showValue />
             <span className="text-sm text-gray-400">(24)</span>
           </div>
-          <div className="flex flex-wrap gap-1.5 mt-4">
-            {guide.tour_types?.slice(0, 3).map((type) => (
-              <Badge key={type} variant="outline" size="sm">{type}</Badge>
+          <div className="flex flex-wrap gap-1.5 mt-3">
+            {guide.specialties?.slice(0, 3).map((spec) => (
+              <Badge key={spec} variant="outline" size="sm">{spec}</Badge>
             ))}
           </div>
-          <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100">
-            <span className="text-xs text-gray-400">Languages:</span>
-            <span className="text-xs text-gray-600">
+          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100 text-sm">
+            <span className="text-gray-500">
               {guide.languages?.slice(0, 3).map(getLanguageName).join(', ')}
             </span>
           </div>
@@ -449,13 +515,13 @@ function GuideListItem({ guide }: { guide: Guide }) {
               <Badge variant="gold" className="absolute top-3 left-3">Featured</Badge>
             )}
           </div>
-          <CardContent className="p-5 flex-1">
+          <CardContent className="p-4 sm:p-5 flex-1">
             <div className="flex items-start justify-between gap-4">
-              <div>
+              <div className="min-w-0">
                 <h3 className="font-semibold text-lg text-gray-900 group-hover:text-primary transition-colors">
                   {guide.full_name}
                 </h3>
-                <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-sm text-gray-500">
                   <span className="flex items-center gap-1">
                     <MapPin className="h-3.5 w-3.5" />
                     {guide.regions_covered?.slice(0, 2).join(', ') || 'Israel'}
@@ -463,17 +529,27 @@ function GuideListItem({ guide }: { guide: Guide }) {
                   {guide.years_experience && (
                     <span>{guide.years_experience} years exp.</span>
                   )}
+                  <span>{guide.languages?.slice(0, 2).map(getLanguageName).join(', ')}</span>
                 </div>
               </div>
-              <div className="text-right">
-                <Rating value={4.8} size="sm" showValue />
-                <span className="text-sm text-gray-400 block">(24 reviews)</span>
+              <div className="text-right flex-shrink-0">
+                {(guide.pricing as any)?.hourly && (
+                  <>
+                    <p className="text-xl font-bold text-primary">${(guide.pricing as any).hourly}</p>
+                    <p className="text-xs text-gray-400">/hour</p>
+                  </>
+                )}
+                <div className="flex items-center gap-1 mt-2">
+                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                  <span className="text-sm font-medium">4.8</span>
+                  <span className="text-sm text-gray-400">(24)</span>
+                </div>
               </div>
             </div>
             <p className="text-gray-600 mt-3 line-clamp-2">{guide.bio}</p>
             <div className="flex flex-wrap gap-1.5 mt-4">
-              {guide.tour_types?.slice(0, 4).map((type) => (
-                <Badge key={type} variant="outline" size="sm">{type}</Badge>
+              {guide.specialties?.slice(0, 4).map((spec) => (
+                <Badge key={spec} variant="outline" size="sm">{spec}</Badge>
               ))}
             </div>
             <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
@@ -481,13 +557,13 @@ function GuideListItem({ guide }: { guide: Guide }) {
                 {guide.licensed_guide_number && (
                   <div className="flex items-center gap-1 text-green-600 text-sm">
                     <Shield className="h-4 w-4" />
-                    Licensed
+                    <span className="hidden sm:inline">Licensed</span>
                   </div>
                 )}
                 {(guide as any).instant_book_enabled && (
                   <div className="flex items-center gap-1 text-accent text-sm">
                     <Zap className="h-4 w-4" />
-                    Instant Book
+                    <span className="hidden sm:inline">Instant Book</span>
                   </div>
                 )}
               </div>
