@@ -7,14 +7,26 @@ export function useAuth() {
   const [isLoading, setIsLoading] = useState(!authState.isInitialized)
   const [guide, setGuide] = useState<Guide | null>(null)
 
-  const fetchGuideProfile = useCallback(async (email: string) => {
+  // Fetch guide profile by user_id (matches RLS policy)
+  const fetchGuideProfile = useCallback(async (userId: string) => {
     if (!supabase) return
-    const { data } = await supabase
-      .from('guides')
-      .select('*')
-      .eq('email', email)
-      .single()
-    setGuide(data as Guide | null)
+    try {
+      const { data, error } = await supabase
+        .from('guides')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle() // Use maybeSingle() to handle no results without error
+
+      if (error) {
+        console.error('Error fetching guide profile:', error.message)
+        setGuide(null)
+        return
+      }
+      setGuide(data as Guide | null)
+    } catch (err) {
+      console.error('Failed to fetch guide profile:', err)
+      setGuide(null)
+    }
   }, [])
 
   useEffect(() => {
@@ -34,12 +46,12 @@ export function useAuth() {
   }, [])
 
   useEffect(() => {
-    if (user?.email) {
-      fetchGuideProfile(user.email)
+    if (user?.id) {
+      fetchGuideProfile(user.id)
     } else {
       setGuide(null)
     }
-  }, [user?.email, fetchGuideProfile])
+  }, [user?.id, fetchGuideProfile])
 
   const signOut = async () => {
     if (!supabase) return
