@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { ChevronLeft, Check, CreditCard, Shield, Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
+import { createCheckoutSession } from '@/lib/stripe'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -48,16 +49,48 @@ function BookingPage() {
   const downPayment = Math.min(100, Math.round(basePrice * 0.2))
 
   const handleSubmit = async () => {
-    if (!supabase) return
+    if (!supabase || !selectedDate) return
     setIsSubmitting(true)
-    const { error } = await supabase.from('bookings').insert({
+
+    // First create the booking in our database
+    const tourDate = format(selectedDate, 'yyyy-MM-dd')
+    const { data: booking, error } = await supabase.from('bookings').insert({
       guide_id: guideId, traveler_name: contactInfo.name, traveler_email: contactInfo.email,
-      traveler_phone: contactInfo.phone, tour_date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null,
+      traveler_phone: contactInfo.phone, tour_date: tourDate,
       duration, group_size: groupSize, special_requests: specialRequests,
       total_price: basePrice, down_payment: downPayment, status: 'pending',
-    })
-    setIsSubmitting(false)
-    if (!error) setStep('confirm')
+    }).select().single()
+
+    if (error || !booking) {
+      console.error('Failed to create booking:', error)
+      setIsSubmitting(false)
+      return
+    }
+
+    // Create Stripe Checkout Session via server function
+    try {
+      const result = await createCheckoutSession({
+        data: {
+          bookingId: booking.id,
+          guideId,
+          guideName: guide.full_name,
+          amount: downPayment,
+          travelerEmail: contactInfo.email,
+          tourDate,
+          duration,
+        },
+      })
+
+      if (result.url) {
+        window.location.href = result.url // Redirect to Stripe Checkout
+      } else {
+        console.error('No checkout URL returned:', result)
+        setIsSubmitting(false)
+      }
+    } catch (err) {
+      console.error('Checkout error:', err)
+      setIsSubmitting(false)
+    }
   }
 
   const steps = [{ id: 'details', label: 'Details' }, { id: 'contact', label: 'Contact' }, { id: 'payment', label: 'Payment' }]
@@ -141,24 +174,33 @@ function BookingPage() {
               {step === 'payment' && (
                 <div className="space-y-6">
                   <h2 className="text-xl font-semibold">Review & Pay</h2>
-                  <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                    <div className="flex justify-between"><span className="text-gray-500">Tour Price</span><span className="font-medium">${basePrice}</span></div>
-                    <div className="flex justify-between text-green-600"><span>Down Payment</span><span className="font-bold">${downPayment}</span></div>
-                    <div className="flex justify-between text-sm text-gray-400"><span>Remaining</span><span>${basePrice - downPayment}</span></div>
+
+                  {/* Booking Summary */}
+                  <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                    <div className="flex justify-between"><span className="text-gray-500">Guide</span><span className="font-medium">{guide.full_name}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-500">Date</span><span className="font-medium">{selectedDate ? format(selectedDate, 'PPP') : '-'}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-500">Duration</span><span className="font-medium">{duration === 'half' ? 'Half Day' : 'Full Day'}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-500">Group Size</span><span className="font-medium">{groupSize} people</span></div>
+                    <div className="border-t pt-3 mt-3">
+                      <div className="flex justify-between"><span className="text-gray-500">Tour Price</span><span className="font-medium">${basePrice}</span></div>
+                      <div className="flex justify-between text-primary font-bold mt-1"><span>Due Now (Deposit)</span><span>${downPayment}</span></div>
+                      <div className="flex justify-between text-sm text-gray-400 mt-1"><span>Pay to Guide Later</span><span>${basePrice - downPayment}</span></div>
+                    </div>
                   </div>
+
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex gap-3">
                     <Shield className="h-5 w-5 text-blue-600 flex-shrink-0" />
-                    <p className="text-sm text-blue-700">Secure booking. Full refund if guide doesn't confirm.</p>
+                    <div className="text-sm text-blue-700">
+                      <p className="font-medium">Secure Payment via Stripe</p>
+                      <p>Your card details are handled securely by Stripe. Full refund if guide doesn't confirm.</p>
+                    </div>
                   </div>
-                  <div className="border rounded-lg p-4 space-y-3">
-                    <Input label="Card Number" placeholder="4242 4242 4242 4242" />
-                    <div className="grid grid-cols-2 gap-3"><Input label="Expiry" placeholder="MM/YY" /><Input label="CVC" placeholder="123" /></div>
-                  </div>
+
                   <div className="flex gap-3">
                     <Button variant="outline" onClick={() => setStep('contact')} className="flex-1">Back</Button>
                     <Button onClick={handleSubmit} disabled={isSubmitting} className="flex-1">
                       {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CreditCard className="h-4 w-4 mr-2" />}
-                      Pay ${downPayment}
+                      Pay ${downPayment} with Stripe
                     </Button>
                   </div>
                 </div>
