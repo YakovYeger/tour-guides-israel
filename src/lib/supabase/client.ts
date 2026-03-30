@@ -2,12 +2,21 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/types/database'
 import type { User } from '@supabase/supabase-js'
 
+// Get env vars with fallbacks
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+
+// Debug: log if env vars are missing (only in dev)
+if (typeof window !== 'undefined' && (!supabaseUrl || !supabaseAnonKey)) {
+  console.error('Missing Supabase env vars:', {
+    url: supabaseUrl ? 'set' : 'MISSING',
+    key: supabaseAnonKey ? 'set' : 'MISSING'
+  })
+}
+
 // Create client at module level - only in browser
-export const supabase = typeof window !== 'undefined'
-  ? createSupabaseClient<Database>(
-      import.meta.env.VITE_SUPABASE_URL,
-      import.meta.env.VITE_SUPABASE_ANON_KEY
-    )
+export const supabase = typeof window !== 'undefined' && supabaseUrl && supabaseAnonKey
+  ? createSupabaseClient<Database>(supabaseUrl, supabaseAnonKey)
   : null
 
 // Auth state that can be accessed synchronously
