@@ -1,0 +1,15 @@
+{
+  "previewPort": 3000,
+  "healthPath": "/",
+  "startCommand": "docker compose -f docker-compose.base44.yml up -d",
+  "secrets": [
+    { "name": "VITE_SUPABASE_ANON_KEY", "description": "Supabase project anon/public key (Supabase dashboard → Project Settings → API → anon public). Needed for client-side data/auth.", "requiredAtBoot": false },
+    { "name": "SUPABASE_SERVICE_ROLE_KEY", "description": "Supabase service role key (dashboard → Project Settings → API → service_role). Used for server-side admin operations.", "requiredAtBoot": false },
+    { "name": "VITE_STRIPE_PUBLISHABLE_KEY", "description": "Stripe publishable key (Stripe dashboard → Developers → API keys → pk_test_...). For client-side checkout.", "requiredAtBoot": false },
+    { "name": "STRIPE_SECRET_KEY", "description": "Stripe secret key (Stripe dashboard → Developers → API keys → sk_test_...). For server-side checkout sessions.", "requiredAtBoot": false },
+    { "name": "STRIPE_WEBHOOK_SECRET", "description": "Stripe webhook signing secret (whsec_...). For verifying webhook payloads.", "requiredAtBoot": false },
+    { "name": "GOOGLE_CLIENT_ID", "description": "Google OAuth client ID (Google Cloud Console → APIs & Services → Credentials). Optional, for Google sign-in.", "requiredAtBoot": false },
+    { "name": "GOOGLE_CLIENT_SECRET", "description": "Google OAuth client secret. Optional, for Google sign-in.", "requiredAtBoot": false }
+  ],
+  "verifiedAtCommit": "55176931369c98695681dde84ed3a08ed3db8103"
+}
