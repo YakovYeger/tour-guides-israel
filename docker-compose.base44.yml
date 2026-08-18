@@ -1,0 +1,23 @@
+services:
+  web:
+    image: node:22-slim
+    working_dir: /app
+    volumes:
+      # Bind-mount the cloned source so edits are reflected live
+      - .:/app
+      # Keep container-installed node_modules isolated from the host
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    # Local-infra / non-secret app config (Supabase URL is a public project URL)
+    environment:
+      - BASE44_PUBLIC_HOST_SUFFIX
+      - VITE_APP_URL=http://localhost:3000
+      - VITE_APP_NAME=Tour Guides Israel
+      - VITE_SUPABASE_URL=https://eficuvvyopcnezybmlrd.supabase.co
+    # External-service secrets (Supabase anon/service keys, Stripe) are delivered
+    # by the platform to /run/base44/app.env (outside the repo).
+    env_file:
+      - /run/base44/app.env
+    command: sh -c "npm install && npx vite dev --host 0.0.0.0 --port 3000"
+    restart: unless-stopped
