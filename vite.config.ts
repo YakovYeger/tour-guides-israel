@@ -9,6 +9,13 @@ import tailwindcss from '@tailwindcss/vite'
 import { nitro } from 'nitro/vite'
 
 const config = defineConfig({
+  server: {
+    host: true,
+    // The preview is served through a proxy hostname that changes whenever the
+    // environment is recreated, so allow all hosts.
+    allowedHosts: true,
+    port: 3000,
+  },
   plugins: [
     devtools(),
     nitro({ rollupConfig: { external: [/^@sentry\//] } }),
