@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import {
   MapPin,
   Shield,
@@ -25,9 +24,15 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { PageLoading } from '@/components/ui/loading-spinner'
 import { BookingPanel } from '@/components/booking'
 import { cn } from '@/lib/utils'
-import { supabase } from '@/lib/supabase/client'
 import { getLanguageName } from '@/data'
 import type { Guide } from '@/types/database'
+import {
+  useGuideBySlug,
+  useGuideReviews,
+  useGuideOfferings,
+  useGuidePricing,
+  useGuideFaqs,
+} from '@/hooks/use-guide-profile'
 
 export const Route = createFileRoute('/guides/$slug')({
   component: GuideProfilePage,
@@ -40,18 +45,7 @@ function GuideProfilePage() {
   const { slug } = Route.useParams()
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
-  const { data: guide, isLoading, error } = useQuery({
-    queryKey: ['guide', slug],
-    queryFn: async () => {
-      if (!supabase) return null
-      const { data } = await supabase
-        .from('guides')
-        .select('*')
-        .eq('id', slug)
-        .single()
-      return data as Guide | null
-    },
-  })
+  const { data: guide, isLoading, error } = useGuideBySlug(slug)
 
   if (isLoading) return <PageLoading text="Loading guide profile..." />
 
@@ -165,15 +159,25 @@ function GuideProfilePage() {
             <Tabs defaultValue="about">
               <TabsList className="w-full">
                 <TabsTrigger value="about">About</TabsTrigger>
-                <TabsTrigger value="reviews">Reviews (24)</TabsTrigger>
+                <TabsTrigger value="tours">Tours & Pricing</TabsTrigger>
+                <TabsTrigger value="reviews">Reviews</TabsTrigger>
+                <TabsTrigger value="faq">FAQ</TabsTrigger>
               </TabsList>
 
               <TabsContent value="about">
                 <AboutTab guide={guide} />
               </TabsContent>
 
+              <TabsContent value="tours">
+                <ToursTab guideId={guide.id} />
+              </TabsContent>
+
               <TabsContent value="reviews">
-                <ReviewsTab />
+                <ReviewsTab guideId={guide.id} />
+              </TabsContent>
+
+              <TabsContent value="faq">
+                <FaqTab guideId={guide.id} />
               </TabsContent>
             </Tabs>
           </div>
@@ -258,47 +262,157 @@ function AboutTab({ guide }: { guide: Guide }) {
   )
 }
 
-function ReviewsTab() {
-  const reviews = [
-    { id: '1', name: 'Sarah M.', date: '2024-01-15', rating: 5, text: 'Amazing experience! David was so knowledgeable and passionate.', photo: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100' },
-    { id: '2', name: 'James W.', date: '2024-01-10', rating: 5, text: 'One of the best tours we have ever taken. Highly recommend!', photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100' },
-    { id: '3', name: 'Maria G.', date: '2024-01-05', rating: 4, text: 'Great tour with lots of history. Would book again.', photo: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100' },
-  ]
+const DURATION_LABELS: Record<string, string> = {
+  half: 'Half Day',
+  full: 'Full Day',
+  multi: 'Multi-Day',
+}
+
+function ToursTab({ guideId }: { guideId: string }) {
+  const { data: offerings = [], isLoading: oLoading } = useGuideOfferings(guideId)
+  const { data: pricing = [], isLoading: pLoading } = useGuidePricing(guideId)
+
+  if (oLoading && pLoading) return <div className="py-12 text-center text-gray-500">Loading tours...</div>
+
+  return (
+    <div className="space-y-10 py-6">
+      {/* Pricing tiers */}
+      {pricing.length > 0 && (
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Pricing</h3>
+          <div className="grid sm:grid-cols-2 gap-4">
+            {pricing.map((tier) => (
+              <Card key={tier.id}>
+                <CardContent className="p-5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-gray-900">{DURATION_LABELS[tier.duration] || tier.duration}</span>
+                    <Badge variant="outline" size="sm">{tier.group_size_min}–{tier.group_size_max} guests</Badge>
+                  </div>
+                  <div className="mt-3 flex items-baseline gap-1">
+                    <span className="text-2xl font-bold text-primary">${tier.flat_rate ?? tier.price_per_person}</span>
+                    {tier.flat_rate ? <span className="text-sm text-gray-400">/ group</span> : <span className="text-sm text-gray-400">/ person</span>}
+                  </div>
+                  {tier.description && <p className="text-sm text-gray-500 mt-2">{tier.description}</p>}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Sample itineraries */}
+      {offerings.length > 0 ? (
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Sample Itineraries</h3>
+          <div className="space-y-4">
+            {offerings.map((off) => (
+              <Card key={off.id}>
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Clock className="h-4 w-4 text-primary" />
+                    <Badge variant="primary" size="sm">{DURATION_LABELS[off.duration] || off.duration}</Badge>
+                  </div>
+                  <h4 className="text-base font-semibold text-gray-900">{off.title}</h4>
+                  {off.description && <p className="text-sm text-gray-600 mt-1">{off.description}</p>}
+                  {off.tour_stops?.length > 0 && (
+                    <ol className="mt-4 space-y-2 border-l-2 border-gray-100 pl-4">
+                      {off.tour_stops.map((stop) => (
+                        <li key={stop.id} className="relative">
+                          {stop.time && <span className="text-xs font-medium text-primary">{stop.time}</span>}
+                          <p className="font-medium text-gray-800">{stop.title}</p>
+                          {stop.description && <p className="text-sm text-gray-500">{stop.description}</p>}
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <p className="text-gray-500">No sample itineraries yet.</p>
+      )}
+    </div>
+  )
+}
+
+function ReviewsTab({ guideId }: { guideId: string }) {
+  const { data: reviews = [], isLoading } = useGuideReviews(guideId)
+
+  const avg = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0
+
+  if (isLoading) return <div className="py-12 text-center text-gray-500">Loading reviews...</div>
 
   return (
     <div className="space-y-6 py-6">
       <div className="flex items-center gap-6 p-4 bg-gray-100 rounded-xl">
         <div className="text-center">
-          <div className="text-4xl font-bold text-gray-900">4.8</div>
-          <Rating value={4.8} size="md" className="mt-1" />
-          <div className="text-sm text-gray-500 mt-1">24 reviews</div>
+          <div className="text-4xl font-bold text-gray-900">{avg ? avg.toFixed(1) : '—'}</div>
+          <Rating value={avg} size="md" className="mt-1" />
+          <div className="text-sm text-gray-500 mt-1">{reviews.length} review{reviews.length !== 1 ? 's' : ''}</div>
         </div>
       </div>
 
-      <div className="space-y-4">
-        {reviews.map((review) => (
-          <Card key={review.id}>
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <Avatar size="md">
-                  <AvatarImage src={review.photo} alt={review.name} />
-                  <AvatarFallback>{getInitials(review.name)}</AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <div className="font-medium text-gray-900">{review.name}</div>
-                    <div className="text-sm text-gray-500">{new Date(review.date).toLocaleDateString()}</div>
+      {reviews.length === 0 ? (
+        <p className="text-gray-500 text-center py-8">No reviews yet.</p>
+      ) : (
+        <div className="space-y-4">
+          {reviews.map((review) => (
+            <Card key={review.id}>
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <Avatar size="md">
+                    <AvatarFallback>{getInitials(review.reviewer_name)}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <div className="font-medium text-gray-900">{review.reviewer_name}</div>
+                      <div className="text-sm text-gray-500">{new Date(review.created_at).toLocaleDateString()}</div>
+                    </div>
+                    <Rating value={review.rating} size="sm" className="mt-1" />
+                    {review.title && <p className="font-medium text-gray-800 mt-2">{review.title}</p>}
+                    <p className="text-gray-600 mt-1">{review.content}</p>
+                    {review.guide_response && (
+                      <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                        <p className="text-sm font-medium text-gray-700">Guide's response:</p>
+                        <p className="text-sm text-gray-600 mt-1">{review.guide_response}</p>
+                      </div>
+                    )}
                   </div>
-                  <Rating value={review.rating} size="sm" className="mt-1" />
-                  <p className="text-gray-600 mt-2">{review.text}</p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
 
+function FaqTab({ guideId }: { guideId: string }) {
+  const { data: faqs = [], isLoading } = useGuideFaqs(guideId)
+  const [open, setOpen] = useState<number | null>(0)
 
+  if (isLoading) return <div className="py-12 text-center text-gray-500">Loading FAQ...</div>
+  if (faqs.length === 0) return <p className="text-gray-500 text-center py-8">No FAQ available.</p>
+
+  return (
+    <div className="space-y-3 py-6">
+      {faqs.map((faq, i) => (
+        <Card key={faq.id}>
+          <CardContent className="p-0">
+            <button
+              onClick={() => setOpen(open === i ? null : i)}
+              className="w-full flex items-center justify-between gap-4 p-4 text-left"
+            >
+              <span className="font-medium text-gray-900">{faq.question}</span>
+              <ChevronRight className={cn('h-4 w-4 text-gray-400 flex-shrink-0 transition-transform', open === i && 'rotate-90')} />
+            </button>
+            {open === i && <div className="px-4 pb-4 text-gray-600">{faq.answer}</div>}
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  )
+}
